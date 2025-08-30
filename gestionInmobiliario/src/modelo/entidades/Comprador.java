@@ -1,6 +1,9 @@
-package servicios.roles;
+package modelo.entidades;
 
 import java.util.LinkedList;
+
+import modelo.datos.CuentaBancaria;
+import modelo.datos.DatosPersonales;
 import modelo.ubicacion.Departamento;
 
 /**
@@ -8,14 +11,14 @@ import modelo.ubicacion.Departamento;
  * Definimos un Comprador como una clase que puede ser capaz de comprar propiedades
  * y de ver su propia lista de compra.
  */
-public class RolComprador {
+public class Comprador extends Usuario {
 	private LinkedList<Departamento> departamentosComprados;
 	
-	public RolComprador() {
-		this.departamentosComprados = new LinkedList<>();
+	public Comprador(long idUnico, DatosPersonales datosPersonales, CuentaBancaria cuentaBancaria) {
+		super(idUnico, datosPersonales, cuentaBancaria);
 	}
 	
-	public void comprarDepartamento(Departamento nuevoDepartamento) {
+	public void agregarDepartamento(Departamento nuevoDepartamento) {
         this.departamentosComprados.add(nuevoDepartamento); 
 	}
 	
