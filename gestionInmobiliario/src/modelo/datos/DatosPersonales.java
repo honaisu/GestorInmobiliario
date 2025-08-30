@@ -20,18 +20,26 @@ public class DatosPersonales {
 	
 	public String getRUT() { return RUT; }
 	public String getNOMBRE() { return NOMBRE; }
-	public String getEmail() { return email;}
-	public String getTelefono() { return "+" + telefono; }
+	public String getEmail() { return email; }
+	public int getTelefono() { return telefono; }
 
-	public boolean setEmail(String email) {
-		if (email.contentEquals("@email.com")) { // Puede haber más proveedores
+	public void setEmail(String email) {
+		if (email == null || email.isEmpty() || !email.contains("@")) return;
+		
+		String dominio = email.substring(email.lastIndexOf("@"));
+		if (dominio.equals("@email.com")) {
 			this.email = email;
-			return true;
+			System.out.println("Email ingresado y válido.");
+		} else {
+			System.out.println("Email no permitido.");
 		}
-		return false;
 	}
 
 	public void setTelefono(int telefono) {
 		this.telefono = telefono;
+	}
+	
+	public void setTelefono(String telefono) {
+		
 	}
 }
