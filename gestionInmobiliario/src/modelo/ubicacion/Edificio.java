@@ -1,19 +1,60 @@
 package modelo.ubicacion;
 import java.util.LinkedList;
-import modelo.datos.Direccion;
+
 
 public class Edificio {
 	private final String NOMBRE;
-	private final Direccion DIRECCION;
 	private LinkedList<Departamento> departamentos;
+	private Agregados informacion;
 	
-	public Edificio(String nombre, Direccion direccion) {
-		NOMBRE = nombre;
-		DIRECCION = direccion;
-		departamentos = new LinkedList<>();
+
+	public Edificio(String nombre, Agregados informacion) {
+		this.NOMBRE = nombre;
+		this.departamentos = new LinkedList<>();
+		this.informacion = informacion;
+	}
+	
+	public Departamento getFirst() {
+		return departamentos.getFirst();
+	}
+
+	public int size() {
+		return departamentos.size();
+	}
+
+	public boolean remove(Object o) {
+		return departamentos.remove(o);
+	}
+	
+	//sobrecarga (por si se quiere eliminar por primera ocurrencia, o por indice)
+	public Departamento remove(int index) {
+		return departamentos.remove(index);
+	}
+
+
+	public void clear() {
+		departamentos.clear();
+	}
+
+	public Departamento get(int index) {
+		return departamentos.get(index);
+	}
+
+	
+	public Object[] toArray() {
+		return departamentos.toArray();
+	}
+
+	public boolean agregarDepartamento(Departamento e) {
+		return departamentos.add(e);
 	}
 
 	public String getNOMBRE() {
 		return NOMBRE;
 	}
+	
+	public Agregados getInformacion() {
+		return informacion;
+	}
+	
 }
