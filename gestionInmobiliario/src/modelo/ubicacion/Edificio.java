@@ -1,12 +1,15 @@
 package modelo.ubicacion;
 import java.util.LinkedList;
 
-
+/**
+ * Clase que contiene una lista de Departamentos, conformando un Edificio.
+ * Posee un nombre propio, la lista de departamentos que posee, y
+ * "agregados" que es posible agregarle al edificio.
+ */
 public class Edificio {
 	private final String NOMBRE;
 	private LinkedList<Departamento> departamentos;
 	private Agregados informacion;
-	
 
 	public Edificio(String nombre, Agregados informacion) {
 		this.NOMBRE = nombre;

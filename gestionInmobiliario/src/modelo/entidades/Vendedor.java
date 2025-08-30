@@ -1,10 +1,8 @@
 package modelo.entidades;
 
 import java.util.LinkedList;
-
-import modelo.datos.CuentaBancaria;
+import gestor.ProyectoInmobiliario;
 import modelo.datos.DatosPersonales;
-import modelo.ubicacion.Departamento;
 
 /**
  * Clase que definimos como un "vendedor" dentro del sistema.
@@ -12,10 +10,15 @@ import modelo.ubicacion.Departamento;
  * Posee atributos propios como una lista interna de departamentos en venta.
  */
 public class Vendedor extends Usuario {
-	private LinkedList<Departamento> departamentosEnVenta;
+	private LinkedList<ProyectoInmobiliario> proyectosAsociados;
 	
-	public Vendedor(long idUnico, DatosPersonales datosPersonales, CuentaBancaria cuentaBancaria) {
-		super(idUnico, datosPersonales, cuentaBancaria);
+	public Vendedor(long idUnico, DatosPersonales datosPersonales) {
+		super(idUnico, datosPersonales);
 	}
-	// TODO Añadir más variables y operaciones
+	
+	public boolean crearProyecto(String nombre) {
+		ProyectoInmobiliario nuevoProyecto = new ProyectoInmobiliario(nombre, this, null);
+		return (proyectosAsociados.add(nuevoProyecto)) ? true : false;
+	}
+	// TODO Añadir más operaciones
 }
