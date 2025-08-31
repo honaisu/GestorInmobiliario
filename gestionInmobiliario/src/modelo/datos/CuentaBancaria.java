@@ -1,6 +1,7 @@
 package modelo.datos;
 
 /**
+ * --- STAND BY ---
  * Clase que nos permite crear una cuenta Bancaria simple.
  * Posee un identificador conocido como Número de Cuenta y
  * está al pendiente del saldo que sea ingresado.
