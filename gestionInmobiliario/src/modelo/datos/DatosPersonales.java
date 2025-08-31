@@ -42,4 +42,8 @@ public class DatosPersonales {
 	public void setTelefono(String telefono) {
 		
 	}
+	
+	public String getNombre() {
+        return this.NOMBRE;
+    }
 }

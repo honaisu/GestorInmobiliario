@@ -2,6 +2,7 @@ package modelo.entidades;
 
 import java.util.LinkedList;
 
+import modelo.datos.CuentaBancaria;
 import modelo.datos.DatosPersonales;
 import modelo.ubicacion.Departamento;
 
@@ -13,8 +14,8 @@ import modelo.ubicacion.Departamento;
 public class Comprador extends Usuario {
 	private LinkedList<Departamento> departamentosComprados;
 	
-	public Comprador(long idUnico, DatosPersonales datosPersonales) {
-		super(idUnico, datosPersonales);
+	public Comprador(long idUnico, DatosPersonales datosPersonales, CuentaBancaria cuentaBancaria) {
+		super(idUnico, datosPersonales, cuentaBancaria);
 	}
 	
 	public void agregarDepartamento(Departamento nuevoDepartamento) {

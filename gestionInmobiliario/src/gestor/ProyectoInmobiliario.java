@@ -1,26 +1,28 @@
 package gestor;
 
 import java.time.LocalTime;
+import java.util.LinkedList;
+
 import modelo.entidades.Usuario;
-import modelo.entidades.Vendedor;
 import modelo.ubicacion.Edificio;
 
-/**
- * Clase que conforma un proyecto que será utilizado para nuestro sistema.
- * Posee un nombre descriptivo propio, un vendedor asociado, la fecha
- * a la que se realizó la subida y el edificio propio, que será el proyecto.
- */
 public class ProyectoInmobiliario {
-	private String nombreProyecto;
-	private Vendedor vendedor;
-	private LocalTime fecha;
-	private Edificio edificio;
 	
-	public ProyectoInmobiliario(String nombreProyecto, Vendedor vendedor, Edificio edificio) {
+	private String nombreProyecto;
+	private Usuario vendedor;
+	private LocalTime fecha;
+	private LinkedList<Edificio> listaEdificios;
+	
+	
+	public ProyectoInmobiliario(String nombreProyecto, Usuario vendedor) {
 		this.nombreProyecto = nombreProyecto;
 		this.vendedor = vendedor;
 		this.fecha = LocalTime.now();
-		this.edificio = edificio;
+		this.listaEdificios = new LinkedList<Edificio>();
+	}
+	
+	public void agregarEdificio(Edificio edificio) {
+		listaEdificios.add(edificio);
 	}
 
 	public String getNombreProyecto() {
@@ -31,11 +33,7 @@ public class ProyectoInmobiliario {
 		return vendedor;
 	}
 
-	public String getFecha() {
-		return fecha.toString();
-	}
-	
-	public Edificio getEdificio() {
-		return edificio;
+	public LocalTime getFecha() {
+		return fecha;
 	}
 }
