@@ -18,9 +18,11 @@ public abstract class Usuario extends Identificador {
 		this.cuentaBancaria = cuentaBancaria;
 	}
 	
+	public long getIdentificador() {
+		return idUnico;
+	}
 	
 	public DatosPersonales getDatosPersonales() {
 		return this.datosPersonales;
 	}
-	
 }

@@ -14,20 +14,20 @@ public class Edificio {
 		this.informacion = informacion;
 	}
 	
-	public Departamento getFirst() {
+	public Departamento getFirstDepartamento() {
 		return departamentos.getFirst();
 	}
 
-	public int size() {
+	public int getCantDepartamentos() {
 		return departamentos.size();
 	}
 
-	public boolean remove(Departamento o) {
+	public boolean removeDepartamento(Departamento o) {
 		return departamentos.remove(o);
 	}
 	
 	//sobrecarga (por si se quiere eliminar por primera ocurrencia, o por indice)
-	public Departamento remove(int index) {
+	public Departamento removeDepartamento(int index) {
 		return departamentos.remove(index);
 	}
 
@@ -35,12 +35,8 @@ public class Edificio {
 		departamentos.clear();
 	}
 
-	public Departamento get(int index) {
+	public Departamento getDepartamento(int index) {
 		return departamentos.get(index);
-	}
-
-	public Object[] toArray() {
-		return departamentos.toArray();
 	}
 
 	public boolean agregarDepartamento(Departamento e) {
@@ -54,5 +50,4 @@ public class Edificio {
 	public Agregados getInformacion() {
 		return informacion;
 	}
-	
 }

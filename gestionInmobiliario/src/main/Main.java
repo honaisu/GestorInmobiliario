@@ -1,53 +1,62 @@
 package main;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
-
-//Datos
-import modelo.datos.DatosPersonales;
-import modelo.datos.CuentaBancaria;
-
-//Entidades
-import modelo.entidades.Usuario;
-import modelo.entidades.Identificador;
-import modelo.entidades.Comprador;
-import modelo.entidades.Vendedor;
-
-//Gestor
+// Interactividad (menú opciones)
+import servicios.Interactive;
+/*
+ * Cada paquete de abajo se puede reemplazar a futuro.
+ * Pues solo son utilizados para el testing (usuario, proyecto) de la app. :D
+ */
+// Gestor
 import gestor.GestorInmobiliarioService;
 import gestor.ProyectoInmobiliario;
-import gestor.Reserva;
-
+// Datos
+import modelo.datos.DatosPersonales;
+import modelo.datos.CuentaBancaria;
+import modelo.entidades.Vendedor;
+// Edificios
 import modelo.ubicacion.Agregados;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
-import servicios.displayer.ConsoleDisplayer;
 /**
  * @author honai
  */
 public class Main {
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws IOException {
 		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-		ConsoleDisplayer.menuPrincipal();
+		/**
+		 *  -- FUNCIONAMIENTO PRELIMINAR DEL PROGRAMA --
+		 *  Mostrando como funciona el sistema de "vendedor"
+		 *  (parte importante de nuestro futuro sistema).
+		 */
 		
-		
-		
-		//creando un Usuario 
+		// Vendedor pivote para mostrar funcionamiento :)
+		Vendedor hugancio = testVendedor();
+		// Crea al menos un proyecto dentro del menú
+		testProyecto(hugancio);
+		// Menú
+		Interactive.menuVendedorOpciones(bf, hugancio);
+		System.out.println("Hasta luego!");
+		bf.close();
+	}
+	
+	public static Vendedor testVendedor() {
+		//creando un Usuario
 		long idNuevo = 1L;
 		
 		DatosPersonales datosPersona1 = new DatosPersonales("11.222.333-4", "Hugo Alejandroid", "soyunemail@gmail.com", 912345678);  
-		
-		CuentaBancaria datosBancoP1 = new CuentaBancaria("HG-777");  
+		CuentaBancaria datosBancoP1 = new CuentaBancaria("HG-777"); 
 		
 		Vendedor hugancioElVendedor = new Vendedor(idNuevo, datosPersona1, datosBancoP1);
-		//Usuario hugancio = new Usuario(idNuevo, datosPersona1, datosBancoP1); 
-		
-		ProyectoInmobiliario proyectoUno = new ProyectoInmobiliario("Proyecto Prueba", hugancioElVendedor);
-		
-		
-		Agregados agre = new Agregados("La pintana", true, false);
-		Edificio edi = new Edificio("Faker", agre); 
+		return hugancioElVendedor;
+	}
+	
+	public static void testProyecto(Vendedor vendedor) {
+		Agregados agre = new Agregados("La Pintana", true, false);
+		Edificio edi = new Edificio("Faker Club.", agre); 
 		
 		Departamento depa1 = new Departamento("1A", 2, 30, 3, 2);
 		Departamento depa2 = new Departamento("2A", 2, 30, 3, 2);
@@ -56,12 +65,7 @@ public class Main {
 		edi.agregarDepartamento(depa1);
 		edi.agregarDepartamento(depa2);
 		edi.agregarDepartamento(depa3);
-		
-		
-		proyectoUno.agregarEdificio(edi);
-		
-		System.out.println("Quien compró el proyecto? "+ (proyectoUno.getVendedor()).getDatosPersonales().getNombre());
-		
-		bf.close();
+		ProyectoInmobiliario proyecto = new ProyectoInmobiliario(1, "Testing", vendedor, edi);
+		GestorInmobiliarioService.agregarProyecto(null, proyecto);
 	}
 }

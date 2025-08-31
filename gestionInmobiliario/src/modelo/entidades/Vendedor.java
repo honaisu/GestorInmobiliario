@@ -2,9 +2,9 @@ package modelo.entidades;
 
 import java.util.LinkedList;
 
+import gestor.ProyectoInmobiliario;
 import modelo.datos.CuentaBancaria;
 import modelo.datos.DatosPersonales;
-import modelo.ubicacion.Departamento;
 
 /**
  * Clase que definimos como un "vendedor" dentro del sistema.
@@ -12,14 +12,23 @@ import modelo.ubicacion.Departamento;
  * Posee atributos propios como una lista interna de departamentos en venta.
  */
 public class Vendedor extends Usuario {
-	private LinkedList<Departamento> departamentosEnVenta;
+	private LinkedList<ProyectoInmobiliario> proyectosAsociados;
 	
 	public Vendedor(long idUnico, DatosPersonales datosPersonales, CuentaBancaria cuentaBancaria) {
 		super(idUnico, datosPersonales, cuentaBancaria);
 	}
 	// TODO Añadir más variables y operaciones
 	
+	public String getNombre() {
+		return datosPersonales.getNombre();
+	}
 	
-	
-	
+	// Método de prueba para crear un nuevo proyecto
+	// Debería tal vez ser gestionado por el gestor :)
+	// TODO: sistema de verificación del ID (saber si existe en el gestor o no)
+	public boolean ingresarProyecto(ProyectoInmobiliario proyecto) {
+		if (proyecto == null) return false;
+		proyectosAsociados.add(proyecto);
+		return true;
+	}
 }

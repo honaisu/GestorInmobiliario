@@ -11,6 +11,10 @@ public class Agregados {
 		this.tienePiscina = tienePiscina;
 		this.tieneEstacionamineto = tieneEstacionamineto;
 	}
+	
+	public Agregados(String direccion) {
+		this.direccion = direccion;
+	}
 
 
 	public boolean isTienePiscina() {

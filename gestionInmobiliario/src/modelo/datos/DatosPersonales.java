@@ -39,10 +39,6 @@ public class DatosPersonales {
 		this.telefono = telefono;
 	}
 	
-	public void setTelefono(String telefono) {
-		
-	}
-	
 	public String getNombre() {
         return this.NOMBRE;
     }
