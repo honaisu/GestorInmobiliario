@@ -26,9 +26,18 @@ public class Edificio {
 		return departamentos.remove(o);
 	}
 	
-	//sobrecarga (por si se quiere eliminar por primera ocurrencia, o por indice)
+	//sobrecarga (por si se quiere eliminar por primera ocurrencia, o por indice, o por codigo de departamento)
 	public Departamento removeDepartamento(int index) {
 		return departamentos.remove(index);
+	}
+	
+	public boolean removeDepartamento(String codPiso) {
+		for (Departamento d: this.departamentos) {
+			if (d.getCodigo().equals(codPiso.toUpperCase())) {
+				return removeDepartamento(d);
+			}
+		}
+		return false;
 	}
 
 	public void clear() {

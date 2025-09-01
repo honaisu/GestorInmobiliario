@@ -15,7 +15,6 @@ import gestor.GestorInmobiliarioService;
 import gestor.ProyectoInmobiliario;
 // Datos
 import modelo.datos.DatosPersonales;
-import modelo.datos.CuentaBancaria;
 import modelo.entidades.Vendedor;
 // Edificios
 import modelo.ubicacion.Agregados;
