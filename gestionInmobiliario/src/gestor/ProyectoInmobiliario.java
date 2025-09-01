@@ -3,7 +3,6 @@ package gestor;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.LinkedList;
 
 import modelo.entidades.Identificador;
 import modelo.entidades.Vendedor;
@@ -31,10 +30,7 @@ public class ProyectoInmobiliario extends Identificador {
 	public Edificio getEdificio() {
 		return edificio;
 	}
-	
-	public long getIdentificador() {
-		return idUnico;
-	}
+
 
 	public Vendedor getVendedor() {
 		return vendedor;
