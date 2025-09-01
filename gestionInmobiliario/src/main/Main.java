@@ -46,9 +46,8 @@ public class Main {
 		//creando un Usuario
 		long idNuevo = 1L;
 		
-		DatosPersonales datosPersona1 = new DatosPersonales("11.222.333-4", "Hugo Alejandroid", "soyunemail@gmail.com", 912345678);  
-		
-		
+		DatosPersonales datosPersona1 = new DatosPersonales("11.222.333-4", "Hugo Alejandroid", "soyunemail@gmail.com", "912345678");
+
 		Vendedor hugancioElVendedor = new Vendedor(idNuevo, datosPersona1);
 		return hugancioElVendedor;
 	}
