@@ -8,35 +8,42 @@ package modelo.datos;
 public class DatosPersonales {
 	private final String RUT;
 	private final String NOMBRE; // Primer Nombre(?) o Nombre y Apellido
-	private String email;
-	private int telefono;
+	private String email = "";
+	private String telefono = "000000000";
 	
-	public DatosPersonales(String RUT, String NOMBRE, String email, int telefono) {
+	public DatosPersonales(String RUT, String NOMBRE, String email) {
 		this.RUT = RUT;
 		this.NOMBRE = NOMBRE;
-		this.email = email;
-		this.telefono = telefono;
+		setEmail(email);
+	}
+	
+	public DatosPersonales(String RUT, String NOMBRE, String email, String telefono) {
+		this.RUT = RUT;
+		this.NOMBRE = NOMBRE;
+		setEmail(email);
+		setTelefono(telefono);
 	}
 	
 	public String getRUT() { return RUT; }
 	public String getNOMBRE() { return NOMBRE; }
 	public String getEmail() { return email; }
-	public int getTelefono() { return telefono; }
+	public String getTelefono() { return telefono; }
 
-	public void setEmail(String email) {
-		if (email == null || email.isEmpty() || !email.contains("@")) return;
+	public boolean setEmail(String email) {
+		if (email == null || email.isEmpty() || !email.contains("@")) return false;
 		
 		String dominio = email.substring(email.lastIndexOf("@"));
 		if (dominio.equals("@email.com")) {
 			this.email = email;
-			System.out.println("Email ingresado y válido.");
-		} else {
-			System.out.println("Email no permitido.");
+			return true;
 		}
+		return false;
 	}
 
-	public void setTelefono(int telefono) {
+	public boolean setTelefono(String telefono) {
+		if (telefono.length() > 9 || telefono.contains("+")) return false;
 		this.telefono = telefono;
+		return true;
 	}
 	
 	public String getNombre() {
