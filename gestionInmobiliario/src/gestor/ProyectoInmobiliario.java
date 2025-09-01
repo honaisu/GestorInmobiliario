@@ -30,10 +30,7 @@ public class ProyectoInmobiliario extends Identificador {
 	public Edificio getEdificio() {
 		return edificio;
 	}
-	
-	public long getIdentificador() {
-		return idUnico;
-	}
+
 
 	public Vendedor getVendedor() {
 		return vendedor;

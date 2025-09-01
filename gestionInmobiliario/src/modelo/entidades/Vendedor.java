@@ -3,7 +3,6 @@ package modelo.entidades;
 import java.util.LinkedList;
 
 import gestor.ProyectoInmobiliario;
-import modelo.datos.CuentaBancaria;
 import modelo.datos.DatosPersonales;
 
 /**
@@ -14,8 +13,8 @@ import modelo.datos.DatosPersonales;
 public class Vendedor extends Usuario {
 	private LinkedList<ProyectoInmobiliario> proyectosAsociados;
 	
-	public Vendedor(long idUnico, DatosPersonales datosPersonales, CuentaBancaria cuentaBancaria) {
-		super(idUnico, datosPersonales, cuentaBancaria);
+	public Vendedor(long idUnico, DatosPersonales datosPersonales) {
+		super(idUnico, datosPersonales);
 	}
 	// TODO Añadir más variables y operaciones
 	

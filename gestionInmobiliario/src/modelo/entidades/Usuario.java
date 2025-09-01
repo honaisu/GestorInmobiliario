@@ -1,6 +1,5 @@
 package modelo.entidades;
 
-import modelo.datos.CuentaBancaria;
 import modelo.datos.DatosPersonales;
 
 /**
@@ -10,12 +9,10 @@ import modelo.datos.DatosPersonales;
  */
 public abstract class Usuario extends Identificador {
 	protected DatosPersonales datosPersonales;
-	protected CuentaBancaria cuentaBancaria;
 	
-	public Usuario(long idUnico, DatosPersonales datosPersonales, CuentaBancaria cuentaBancaria) {
+	public Usuario(long idUnico, DatosPersonales datosPersonales) {
 		super(idUnico);
 		this.datosPersonales = datosPersonales;
-		this.cuentaBancaria = cuentaBancaria;
 	}
 	
 	public long getIdentificador() {

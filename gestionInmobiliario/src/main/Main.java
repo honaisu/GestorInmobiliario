@@ -15,7 +15,6 @@ import gestor.GestorInmobiliarioService;
 import gestor.ProyectoInmobiliario;
 // Datos
 import modelo.datos.DatosPersonales;
-import modelo.datos.CuentaBancaria;
 import modelo.entidades.Vendedor;
 // Edificios
 import modelo.ubicacion.Agregados;
@@ -48,9 +47,8 @@ public class Main {
 		long idNuevo = 1L;
 		
 		DatosPersonales datosPersona1 = new DatosPersonales("11.222.333-4", "Hugo Alejandroid", "soyunemail@gmail.com", "912345678");
-		CuentaBancaria datosBancoP1 = new CuentaBancaria("HG-777"); 
-		
-		Vendedor hugancioElVendedor = new Vendedor(idNuevo, datosPersona1, datosBancoP1);
+
+		Vendedor hugancioElVendedor = new Vendedor(idNuevo, datosPersona1);
 		return hugancioElVendedor;
 	}
 	
@@ -66,6 +64,6 @@ public class Main {
 		edi.agregarDepartamento(depa2);
 		edi.agregarDepartamento(depa3);
 		ProyectoInmobiliario proyecto = new ProyectoInmobiliario(1, "Testing", vendedor, edi);
-		GestorInmobiliarioService.agregarProyecto(null, proyecto);
+		GestorInmobiliarioService.agregarProyecto(proyecto);
 	}
 }
