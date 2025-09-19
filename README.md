@@ -40,4 +40,4 @@ El diseño del sistema se fundamenta en el paradigma de Programación Orientada 
 1. Clonar el repositorio desde GitHub: `git clone https://github.com/honaisu/GestorInmobiliario.git`
 2. Navegar al directorio del proyecto.
 3. Compilar los archivos fuente `.java`.
-4. Ejecutar la clase principal que contiene el método `main`.
+4. Ejecutar la clase principal que contiene el método `main`, ubicada en la carpeta `src/main/Main.java`.
