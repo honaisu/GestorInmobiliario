@@ -1,11 +1,5 @@
 package main;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-// Interactividad (menú opciones)
-import servicios.Interactive;
 /*
  * Cada paquete de abajo se puede reemplazar a futuro.
  * Pues solo son utilizados para el testing (usuario, proyecto) de la app. :D
@@ -20,26 +14,13 @@ import modelo.entidades.Vendedor;
 import modelo.ubicacion.Agregados;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
+import servicios.displayer.VisualDisplayer;
 /**
  * @author honai
  */
 public class Main {
-	public static void main(String[] args) throws IOException {
-		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-		/**
-		 *  -- FUNCIONAMIENTO PRELIMINAR DEL PROGRAMA --
-		 *  Mostrando como funciona el sistema de "vendedor"
-		 *  (parte importante de nuestro futuro sistema).
-		 */
-		
-		// Vendedor pivote para mostrar funcionamiento :)
-		Vendedor hugancio = testVendedor();
-		// Crea al menos un proyecto dentro del menú
-		testProyecto(hugancio);
-		// Menú
-		Interactive.menuVendedorOpciones(bf, hugancio);
-		System.out.println("Hasta luego!");
-		bf.close();
+	public static void main(String[] args) {
+		new VisualDisplayer().initialize();
 	}
 	
 	public static Vendedor testVendedor() {
