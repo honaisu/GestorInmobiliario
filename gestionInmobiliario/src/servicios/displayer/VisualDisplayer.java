@@ -2,8 +2,10 @@ package servicios.displayer;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -13,39 +15,62 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-@SuppressWarnings("serial")
-public class VisualDisplayer extends JFrame {
-	DefaultTableModel defaultTable;
+/**
+ * Clase encargada de mostrar todos los componentes visuales referentes
+ * a la interfaz gráfica de nuestro programa (implementada con Java Swing).
+ */
+public class VisualDisplayer {
+	private JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
 	
+	private DefaultTableModel defaultTable;
 	private JTable tabla;
+	
 	private JButton verBoton;
 	private JButton comprarBoton;
 	private JButton eliminarBoton;
 	
+	/**
+	 * Método que hace que una instancia de la clase inicialicé la interfaz gráfica.
+	 * <p>
+	 * Creará una instancia de <b>JFrame</b> propia con todas las componentes clave
+	 * que posee el gestor.
+	 */
 	public void initialize() {
-		JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
-		mainFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setResizable(false);
+		
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
 		JPanel headerPanel = crearHeaderPanel();
 		JPanel opcionesPanel = crearOpcionesPanel();
 		JPanel proyectorPanel = crearProyectorPanel();
 		
-		mainFrame.add(headerPanel, BorderLayout.NORTH);
-		mainFrame.add(opcionesPanel, BorderLayout.EAST);
-		mainFrame.add(proyectorPanel, BorderLayout.CENTER);
+		mainPanel.add(headerPanel, BorderLayout.NORTH);
+		mainPanel.add(opcionesPanel, BorderLayout.EAST);
+		mainPanel.add(proyectorPanel, BorderLayout.CENTER);
+		
+		mainFrame.add(mainPanel);
 		
 		// Size automático con pack, y visibilidad a verdadero. :)
 		mainFrame.pack();
+		// Para colocar la ventana en "medio"
+		mainFrame.setLocationRelativeTo(null);
+		// Visibilidad
 		mainFrame.setVisible(true);
 	}
 	
 	private JPanel crearHeaderPanel() {
-		JPanel panel = new JPanel();
-		panel.setPreferredSize(new Dimension(300, 100));
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setPreferredSize(new Dimension(200, 100));
 		
-		JLabel titulo = new JLabel("Bienvenido al Gestor Inmobiliario.");
-		panel.add(titulo);
+		JLabel titulo = new JLabel("GESTOR INMOBILIARIO", JLabel.CENTER);
+		titulo.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+		
+		JLabel marcaAgua = new JLabel("🄯 Los Bien Corporation. All lefts reserved");
+
+		panel.add(titulo, BorderLayout.CENTER);
+		panel.add(marcaAgua, BorderLayout.SOUTH);
 		
 		return panel;
 	}
@@ -53,6 +78,8 @@ public class VisualDisplayer extends JFrame {
 	private JPanel crearOpcionesPanel() {
 		JPanel panel = new JPanel(new GridLayout(0, 1, 10, 20));
 		panel.setPreferredSize(new Dimension(200, 250));
+		
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		
 		for (OpcionesProyecto o : OpcionesProyecto.values()) {
 			JButton opcionBoton = new JButton();
@@ -83,7 +110,7 @@ public class VisualDisplayer extends JFrame {
 	
 	private JPanel crearProyectorPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		panel.setPreferredSize(new Dimension(700, 200));
+		panel.setPreferredSize(new Dimension(500, 200));
 		
 		// Tabla con datos.
 		String[] columnas = {"ID", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
@@ -119,7 +146,7 @@ public class VisualDisplayer extends JFrame {
 	private void accionOpcionesProyecto(OpcionesProyecto opcion) {
 		switch (opcion) {
 		case COMPRAR: {
-			JOptionPane.showMessageDialog(this, "Función \"Comprar\" activada para la fila: " + (tabla.getSelectedRow() + 1));
+			JOptionPane.showMessageDialog(mainFrame, "Función \"Comprar\" activada para la fila: " + (tabla.getSelectedRow() + 1));
 			break;
 		}
 		case VER: {
@@ -137,13 +164,13 @@ public class VisualDisplayer extends JFrame {
                         "Vendedor: " + vendedor + "\n" +
                         "Fecha de Ingreso: " + fecha;
 	            
-	            JOptionPane.showMessageDialog(this, mensaje, "Detalles Proyecto", JOptionPane.PLAIN_MESSAGE);
+	            JOptionPane.showMessageDialog(mainFrame, mensaje, "Detalles Proyecto", JOptionPane.PLAIN_MESSAGE);
 			}
 			break;
 		}
 		case REGISTRAR: {
 			String nombreProyecto = JOptionPane.showInputDialog(
-	                this, 
+	                mainFrame, 
 	                "Ingrese el nombre del proyecto:", 
 	                "Registrar Proyecto", 
 	                JOptionPane.QUESTION_MESSAGE);
@@ -169,11 +196,10 @@ public class VisualDisplayer extends JFrame {
 			break;
 		}
 		case BUSCAR: {
-			JOptionPane.showMessageDialog(rootPane, "Algún día va a buscar...");
+			JOptionPane.showMessageDialog(mainFrame.getRootPane(), "Algún día va a buscar...");
 			break;
 		}
 		case SALIR:
-			dispose();
 			System.exit(0); 
 			break;
 		}
