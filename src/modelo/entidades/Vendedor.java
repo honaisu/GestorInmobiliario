@@ -1,9 +1,7 @@
 package modelo.entidades;
 
 import java.util.LinkedList;
-
 import gestor.ProyectoInmobiliario;
-import modelo.datos.DatosPersonales;
 
 /**
  * Clase que definimos como un "vendedor" dentro del sistema.
@@ -13,13 +11,9 @@ import modelo.datos.DatosPersonales;
 public class Vendedor extends Usuario {
 	private LinkedList<ProyectoInmobiliario> proyectosAsociados;
 	
-	public Vendedor(long idUnico, DatosPersonales datosPersonales) {
-		super(idUnico, datosPersonales);
-	}
-	// TODO Añadir más variables y operaciones
-	
-	public String getNombre() {
-		return datosPersonales.getNombre();
+	public Vendedor(String RUT, String NOMBRE, String email) {
+		super(RUT, NOMBRE, email);
+		// TODO Auto-generated constructor stub
 	}
 	
 	// Método de prueba para crear un nuevo proyecto

@@ -3,15 +3,25 @@ import java.util.LinkedList;
 
 
 public class Edificio {
+	private long id;
 	private final String NOMBRE;
 	private LinkedList<Departamento> departamentos;
 	private Agregados informacion;
 	
 
-	public Edificio(String nombre, Agregados informacion) {
+	public Edificio(long id, String nombre, Agregados informacion) {
+		this.id = id;
 		this.NOMBRE = nombre;
 		this.departamentos = new LinkedList<>();
 		this.informacion = informacion;
+	}
+	
+	public Edificio(long id, String nombre, String direccion, boolean piscina, boolean estacionamiento) {
+		this.id = id;
+		this.NOMBRE = nombre;
+		
+		this.departamentos = new LinkedList<>();
+		this.informacion = new Agregados(direccion, piscina, estacionamiento);
 	}
 	
 	public Departamento getFirstDepartamento() {
@@ -52,7 +62,7 @@ public class Edificio {
 		return departamentos.add(e);
 	}
 
-	public String getNOMBRE() {
+	public String getNombre() {
 		return NOMBRE;
 	}
 	

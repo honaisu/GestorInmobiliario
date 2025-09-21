@@ -1,50 +1,25 @@
 package main;
 
+import gestor.DatabaseManager;
+import gestor.GestorInmobiliarioService;
+
 /*
  * Cada paquete de abajo se puede reemplazar a futuro.
  * Pues solo son utilizados para el testing (usuario, proyecto) de la app. :D
  */
-// Gestor
-import gestor.GestorInmobiliarioService;
-import gestor.ProyectoInmobiliario;
-// Datos
-import modelo.datos.DatosPersonales;
-import modelo.entidades.Vendedor;
-// Edificios
-import modelo.ubicacion.Agregados;
-import modelo.ubicacion.Departamento;
-import modelo.ubicacion.Edificio;
+
 import servicios.displayer.VisualDisplayer;
+
 /**
  * @author honai
  */
 public class Main {
 	public static void main(String[] args) {
-		new VisualDisplayer().initialize();
-	}
-	
-	public static Vendedor testVendedor() {
-		//creando un Usuario
-		long idNuevo = 1L;
+		DatabaseManager database = DatabaseManager.getDatabase();
+		database.inicializar("data/DatabaseProyectos");
 		
-		DatosPersonales datosPersona1 = new DatosPersonales("11.222.333-4", "Hugo Alejandroid", "soyunemail@gmail.com", "912345678");
-
-		Vendedor hugancioElVendedor = new Vendedor(idNuevo, datosPersona1);
-		return hugancioElVendedor;
-	}
-	
-	public static void testProyecto(Vendedor vendedor) {
-		Agregados agre = new Agregados("La Pintana", true, false);
-		Edificio edi = new Edificio("Faker Club.", agre); 
+		GestorInmobiliarioService gestor = new GestorInmobiliarioService();
 		
-		Departamento depa1 = new Departamento("1A", 2, 30, 3, 2);
-		Departamento depa2 = new Departamento("2A", 2, 30, 3, 2);
-		Departamento depa3 = new Departamento("3A", 2, 30, 3, 2);
-		
-		edi.agregarDepartamento(depa1);
-		edi.agregarDepartamento(depa2);
-		edi.agregarDepartamento(depa3);
-		ProyectoInmobiliario proyecto = new ProyectoInmobiliario(1, "Testing", vendedor, edi);
-		GestorInmobiliarioService.agregarProyecto(proyecto);
+		new VisualDisplayer(gestor).initialize();
 	}
 }

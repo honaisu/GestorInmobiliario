@@ -1,39 +1,39 @@
 package modelo.ubicacion;
 
 public class Departamento {
+	private long id;
 	private final String CODIGO;
 	private final int NUMERO_PISO;
-	private int metrosCuadrados;
+	private double metrosCuadrados;
+	private EstadoDepartamento estado;
 	private int habitaciones;
 	private int banos;
-	private boolean disponible;
 	private double precio;
 	
-	public Departamento(String codigo, int numeroPiso, int metrosCuadrados, int habitaciones, int banos) {
+	public Departamento(long id, String codigo, int numeroPiso, 
+			double metrosCuadrados, int habitaciones, int banos, 
+			EstadoDepartamento estado, double precioBase) {
+		this.id = id;
 		this.CODIGO = codigo.toUpperCase();
 		this.NUMERO_PISO = numeroPiso;
 		this.metrosCuadrados = metrosCuadrados;
 		this.habitaciones = habitaciones;
 		this.banos = banos;
-		this.disponible = true;
+		this.estado = estado;
+		this.precio = precioBase;
 	}
 	
 	public String getCodigo() {
 		return CODIGO;
 	}
 
-	public int getNUMERO_PISO() {
+	public int getNumeroPiso() {
 		return NUMERO_PISO;
 	}
 
 	public int getHabitaciones() {
 		return habitaciones;
 	}
-
-	public int getMetrosCuadrados() {
-		return metrosCuadrados;
-	}
-	
 	public int getBanos() {
 		return banos;
 	}
@@ -65,9 +65,5 @@ public class Departamento {
 
 	public void setBanos(int banos) {
 		this.banos = banos;
-	}
-
-	public boolean isDisponible(){
-		return disponible;
 	}
 }

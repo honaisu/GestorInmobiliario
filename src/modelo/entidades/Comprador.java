@@ -1,8 +1,6 @@
 package modelo.entidades;
 
 import java.util.LinkedList;
-
-import modelo.datos.DatosPersonales;
 import modelo.ubicacion.Departamento;
 
 /**
@@ -13,8 +11,9 @@ import modelo.ubicacion.Departamento;
 public class Comprador extends Usuario {
 	private LinkedList<Departamento> departamentosComprados;
 	
-	public Comprador(long idUnico, DatosPersonales datosPersonales) {
-		super(idUnico, datosPersonales);
+	public Comprador(String RUT, String NOMBRE, String email) {
+		super(RUT, NOMBRE, email);
+		// TODO Auto-generated constructor stub
 	}
 	
 	public void agregarDepartamento(Departamento nuevoDepartamento) {

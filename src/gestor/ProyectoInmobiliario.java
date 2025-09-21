@@ -1,42 +1,51 @@
 package gestor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.LinkedList;
 
-import modelo.entidades.Identificador;
 import modelo.entidades.Vendedor;
 import modelo.ubicacion.Edificio;
 
-public class ProyectoInmobiliario extends Identificador {
+public class ProyectoInmobiliario {
+	private long id;
 	private String nombreProyecto;
-	private Vendedor vendedor;
-	private LocalDateTime fecha;
-	private Edificio edificio;
+	private String vendedor;
+	private LocalDate fecha;
+	private LinkedList<Edificio> edificio;
 	
 	
-	public ProyectoInmobiliario(long idUnico, String nombreProyecto, Vendedor vendedor, Edificio edificio) {
-		super(idUnico);
+	public ProyectoInmobiliario(long id, String nombreProyecto, String vendedor, LocalDate fecha) {
+		this.id = id;
 		this.nombreProyecto = nombreProyecto;
 		this.vendedor = vendedor;
-		this.fecha = LocalDateTime.now();
-		this.edificio = edificio;
+		this.fecha = fecha;
+		this.edificio = new LinkedList<>();
 	}
 
 	public String getNombreProyecto() {
 		return nombreProyecto;
 	}
-	
-	public Edificio getEdificio() {
-		return edificio;
-	}
-
-
-	public Vendedor getVendedor() {
-		return vendedor;
-	}
 
 	public String getFecha() {
 		return fecha.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM));
+	}
+	
+	public long getId() {
+		return id;
+	}
+	
+	public String getVendedor() {
+		return vendedor;
+	}
+	
+	public String getFechaOferta() {
+		return fecha.toString();
+	}
+
+	public void addEdificio(Edificio edificio) {
+		this.edificio.add(edificio);
 	}
 }

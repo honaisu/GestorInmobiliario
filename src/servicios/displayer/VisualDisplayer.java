@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.Collection;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,12 +16,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import gestor.GestorInmobiliarioService;
+import gestor.ProyectoInmobiliario;
+
 /**
  * Clase encargada de mostrar todos los componentes visuales referentes
  * a la interfaz gráfica de nuestro programa (implementada con Java Swing).
  */
 public class VisualDisplayer {
-	private JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
+	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
 	
 	private DefaultTableModel defaultTable;
 	private JTable tabla;
@@ -28,6 +32,12 @@ public class VisualDisplayer {
 	private JButton verBoton;
 	private JButton comprarBoton;
 	private JButton eliminarBoton;
+	
+    private final GestorInmobiliarioService gestorService; 
+    
+    public VisualDisplayer(GestorInmobiliarioService service) {
+		this.gestorService = service;
+	}
 	
 	/**
 	 * Método que hace que una instancia de la clase inicialicé la interfaz gráfica.
@@ -52,6 +62,8 @@ public class VisualDisplayer {
 		
 		mainFrame.add(mainPanel);
 		
+		cargarProyectosEnTabla();
+		
 		// Size automático con pack, y visibilidad a verdadero. :)
 		mainFrame.pack();
 		// Para colocar la ventana en "medio"
@@ -59,6 +71,25 @@ public class VisualDisplayer {
 		// Visibilidad
 		mainFrame.setVisible(true);
 	}
+	
+	public void cargarProyectosEnTabla() {
+        // Limpiamos la tabla por si tiene datos viejos
+        defaultTable.setRowCount(0);
+
+        // Pedimos los proyectos al controlador (no sabemos de dónde los saca, y no nos importa)
+        Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
+
+        // Iteramos y añadimos cada proyecto a la tabla
+        for (ProyectoInmobiliario proyecto : proyectos) {
+            Object[] fila = {
+                proyecto.getId(),
+                proyecto.getNombreProyecto(),
+                proyecto.getVendedor(),
+                proyecto.getFechaOferta()
+            };
+            defaultTable.addRow(fila);
+        }
+    }
 	
 	private JPanel crearHeaderPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
@@ -203,5 +234,9 @@ public class VisualDisplayer {
 			System.exit(0); 
 			break;
 		}
+	}
+	
+	public static JFrame getFrame() {
+		return mainFrame;
 	}
 }
