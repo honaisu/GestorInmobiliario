@@ -3,8 +3,6 @@ package servicios.displayer;
 public enum OpcionesProyecto {
 	REGISTRAR("Registrar un Proyecto"),
 	VER("Ver Datos Seleccionado"),
-	COMPRAR("Comprar Seleccionado"),
-	ELIMINAR("Eliminar Seleccionado"),
 	BUSCAR("Buscar por Filtro"),
 	SALIR("Salir del Programa");
 	
