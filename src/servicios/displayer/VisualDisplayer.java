@@ -7,6 +7,8 @@ import java.awt.GridLayout;
 import java.util.Collection;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -25,10 +27,18 @@ import gestor.ProyectoInmobiliario;
  */
 public class VisualDisplayer {
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
+	private JFrame visualFrame = new JFrame("Ver Proyecto");
 	
-	private DefaultTableModel defaultTable;
-	private JTable tabla;
+	private DefaultTableModel defaultMain;
+	private JTable tablaProyecto;
 	
+	private DefaultTableModel defaultEdi;
+	private JTable tablaEdificio;
+	
+	private DefaultTableModel defaultDepa;
+	private JTable tablaDepartamento;
+	
+	private JButton reservarBoton;
 	private JButton verBoton;
 	private JButton comprarBoton;
 	private JButton eliminarBoton;
@@ -52,9 +62,9 @@ public class VisualDisplayer {
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
-		JPanel headerPanel = crearHeaderPanel();
-		JPanel opcionesPanel = crearOpcionesPanel();
-		JPanel proyectorPanel = crearProyectorPanel();
+		JPanel headerPanel = mainHeaderPanel();
+		JPanel opcionesPanel = mainOpcionesPanel();
+		JPanel proyectorPanel = mainProyectorPanel();
 		
 		mainPanel.add(headerPanel, BorderLayout.NORTH);
 		mainPanel.add(opcionesPanel, BorderLayout.EAST);
@@ -74,7 +84,7 @@ public class VisualDisplayer {
 	
 	public void cargarProyectosEnTabla() {
         // Limpiamos la tabla por si tiene datos viejos
-        defaultTable.setRowCount(0);
+        defaultMain.setRowCount(0);
 
         // Pedimos los proyectos al controlador (no sabemos de dónde los saca, y no nos importa)
         Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
@@ -87,11 +97,11 @@ public class VisualDisplayer {
                 proyecto.getVendedor(),
                 proyecto.getFechaOferta()
             };
-            defaultTable.addRow(fila);
+            defaultMain.addRow(fila);
         }
     }
 	
-	private JPanel crearHeaderPanel() {
+	private JPanel mainHeaderPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(200, 100));
 		
@@ -106,7 +116,7 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
-	private JPanel crearOpcionesPanel() {
+	private JPanel mainOpcionesPanel() {
 		JPanel panel = new JPanel(new GridLayout(0, 1, 10, 20));
 		panel.setPreferredSize(new Dimension(200, 250));
 		
@@ -116,17 +126,9 @@ public class VisualDisplayer {
 			JButton opcionBoton = new JButton();
 			opcionBoton.setText(o.getNombre());
 			
-			if (OpcionesProyecto.COMPRAR.equals(o)) {
-				this.comprarBoton = opcionBoton;
-				this.comprarBoton.setEnabled(false);
-			}
 			if (OpcionesProyecto.VER.equals(o)) {
 				this.verBoton = opcionBoton;
 				this.verBoton.setEnabled(false);
-			}
-			if (OpcionesProyecto.ELIMINAR.equals(o)) {
-				this.eliminarBoton = opcionBoton;
-				this.eliminarBoton.setEnabled(false);
 			}
 			
 			opcionBoton.addActionListener(lambda -> {
@@ -139,34 +141,32 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
-	private JPanel crearProyectorPanel() {
+	private JPanel mainProyectorPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(500, 200));
 		
 		// Tabla con datos.
 		String[] columnas = {"ID", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
-		this.defaultTable = new DefaultTableModel(columnas, 0);
-		this.tabla = new JTable(defaultTable);
+		this.defaultMain = new DefaultTableModel(columnas, 0);
+		this.tablaProyecto = new JTable(defaultMain);
 		
 		// Para añadir funcionalidad al elegir una fila
-		tabla.getSelectionModel().addListSelectionListener(lambda -> {
+		tablaProyecto.getSelectionModel().addListSelectionListener(lambda -> {
 	        // Este código se ejecuta CADA VEZ que la selección cambia.
 			if (!lambda.getValueIsAdjusting()) {
 	            boolean filaSeleccionada = false;
-				if (tabla.getSelectedRow() != -1) {
+				if (tablaProyecto.getSelectedRow() != -1) {
 					filaSeleccionada = true;
 				}
 				
 	            verBoton.setEnabled(filaSeleccionada);
-	            comprarBoton.setEnabled(filaSeleccionada);
-	            eliminarBoton.setEnabled(filaSeleccionada);
 			}
 		});
 		
 		
 		// Encargado de mostrar la barrita vertical.
 		JScrollPane scrollPane = new JScrollPane(
-				this.tabla,
+				this.tablaProyecto,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
@@ -176,18 +176,14 @@ public class VisualDisplayer {
 	
 	private void accionOpcionesProyecto(OpcionesProyecto opcion) {
 		switch (opcion) {
-		case COMPRAR: {
-			JOptionPane.showMessageDialog(mainFrame, "Función \"Comprar\" activada para la fila: " + (tabla.getSelectedRow() + 1));
-			break;
-		}
 		case VER: {
-			int filaSeleccionada = tabla.getSelectedRow();
+			int filaSeleccionada = tablaProyecto.getSelectedRow();
 			
 			if (filaSeleccionada >= 0) {
-				String id = defaultTable.getValueAt(filaSeleccionada, 0).toString();
-	            String nombre = defaultTable.getValueAt(filaSeleccionada, 1).toString();
-	            String vendedor = defaultTable.getValueAt(filaSeleccionada, 2).toString();
-	            String fecha = defaultTable.getValueAt(filaSeleccionada, 3).toString();
+				String id = defaultMain.getValueAt(filaSeleccionada, 0).toString();
+	            String nombre = defaultMain.getValueAt(filaSeleccionada, 1).toString();
+	            String vendedor = defaultMain.getValueAt(filaSeleccionada, 2).toString();
+	            String fecha = defaultMain.getValueAt(filaSeleccionada, 3).toString();
 	            
 	            String mensaje = "Detalles del Proyecto:\n\n" +
                         "ID: " + id + "\n" +
@@ -195,7 +191,8 @@ public class VisualDisplayer {
                         "Vendedor: " + vendedor + "\n" +
                         "Fecha de Ingreso: " + fecha;
 	            
-	            JOptionPane.showMessageDialog(mainFrame, mensaje, "Detalles Proyecto", JOptionPane.PLAIN_MESSAGE);
+	            verProyectoPanel(filaSeleccionada);
+	            //JOptionPane.showMessageDialog(mainFrame, mensaje, "Detalles Proyecto", JOptionPane.PLAIN_MESSAGE);
 			}
 			break;
 		}
@@ -208,16 +205,17 @@ public class VisualDisplayer {
 			
 			if (nombreProyecto != null) {
 				Object[] nuevaFila = {
-		                defaultTable.getRowCount() + 1, // ID autoincremental simple
+		                defaultMain.getRowCount() + 1, // ID autoincremental simple
 		                nombreProyecto,               // El nombre que ingresó el usuario
 		                "Gato Ingeniero",             // Vendedor de prueba 😸
 		                "2025-09-19"                  // Fecha de prueba
 		            };
 				
-				defaultTable.addRow(nuevaFila);
+				defaultMain.addRow(nuevaFila);
 			}
 			break;
 		}
+		/*
 		case ELIMINAR: {
 			int filaSeleccionada = tabla.getSelectedRow();
 			
@@ -226,6 +224,7 @@ public class VisualDisplayer {
 			}
 			break;
 		}
+		*/
 		case BUSCAR: {
 			JOptionPane.showMessageDialog(mainFrame.getRootPane(), "Algún día va a buscar...");
 			break;
@@ -238,5 +237,155 @@ public class VisualDisplayer {
 	
 	public static JFrame getFrame() {
 		return mainFrame;
+	}
+	
+	//Frame Ver Proyecto
+	
+	private void verProyectoPanel(int filaSeleccionada) {
+		//visualFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		visualFrame.setResizable(false);
+		//visualFrame.setPreferredSize(new Dimension(400, 300));
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		
+		
+		JPanel headerPanel = verHeaderPanel(filaSeleccionada);
+		JPanel opcionesPanel = verOpcionesPanel();
+		JPanel proyectorPanel = verProyectorPanel();
+		
+		
+		mainPanel.add(proyectorPanel, BorderLayout.WEST);
+		mainPanel.add(headerPanel, BorderLayout.NORTH);
+		mainPanel.add(opcionesPanel, BorderLayout.EAST);
+		
+		visualFrame.add(mainPanel);
+		visualFrame.pack();
+		visualFrame.setLocationRelativeTo(null);
+		visualFrame.setVisible(true);
+		
+	}
+	
+	private JPanel verHeaderPanel(int filaSel) {
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setPreferredSize(new Dimension(200, 50));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
+		String tit = tablaProyecto.getValueAt(filaSel, 1).toString();
+		
+		JLabel titulo = new JLabel("Proyecto: " + tit, JLabel.LEFT);
+		titulo.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+		
+		JLabel marcaAgua = new JLabel("🄯 Los Bien Corporation. All lefts reserved");
+
+		panel.add(titulo, BorderLayout.CENTER);
+		panel.add(marcaAgua, BorderLayout.SOUTH);
+		
+		return panel; 
+	}
+	
+	private JPanel verOpcionesPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		
+		panel.setPreferredSize(new Dimension(200, 100));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
+		for (OpcionesVer o : OpcionesVer.values()) {
+			JButton opcionBoton = new JButton();
+			opcionBoton.setText(o.getNombre());
+			
+			
+			if (OpcionesVer.COMPRAR.equals(o)) {
+				this.comprarBoton = opcionBoton;
+				this.comprarBoton.setEnabled(false);
+			}
+			if (OpcionesVer.RESERVAR.equals(o)) {
+				this.reservarBoton = opcionBoton;
+				this.reservarBoton.setEnabled(false);
+			}
+			
+			opcionBoton.addActionListener(lambda -> {
+				accionOpcionesVer(o);
+			});
+			panel.add(Box.createVerticalStrut(10));
+			panel.add(opcionBoton);
+		}
+		
+		return panel;
+	}
+	
+	private void accionOpcionesVer(OpcionesVer opcion) {
+		switch (opcion) {
+		case COMPRAR:{
+			break;
+		}
+		case RESERVAR:{
+			break;
+		}
+		case SALIR:{
+			visualFrame.dispose();
+			break;
+		}
+		
+		}
+		
+	}
+	
+	private JPanel verProyectorPanel() {
+		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0));
+		//panel.setPreferredSize(new Dimension(500, 200));
+		
+		// Tabla Edificio.
+		String[] ediCols = {"ID", "Edificio", "Dirección", "Piscina", "Estacionamiento"};
+		this.defaultEdi = new DefaultTableModel(ediCols, 0);
+		this.tablaEdificio = new JTable(defaultEdi);
+		
+		// Para añadir funcionalidad al elegir una fila
+		tablaEdificio.getSelectionModel().addListSelectionListener(lambda -> {
+	        // Este código se ejecuta CADA VEZ que la selección cambia.
+			if (!lambda.getValueIsAdjusting()) {
+	            boolean filaSeleccionada = false;
+				if (tablaEdificio.getSelectedRow() != -1) {
+					filaSeleccionada = true;
+				}
+				//TODO LOGICA VER LISTA DE DEPARTAMENTOS
+			}
+		});
+		
+		// Encargado de mostrar la barrita vertical.
+		JScrollPane scrollEdi = new JScrollPane(
+				this.tablaEdificio,
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		//Tabla Departamento
+		String[] DepaCols = {"Código", "Piso", "metros^2", "Estado", "Precio"};
+		this.defaultDepa = new DefaultTableModel(DepaCols, 0);
+		this.tablaDepartamento = new JTable(defaultDepa);
+		
+		// Para añadir funcionalidad al elegir una fila
+		tablaDepartamento.getSelectionModel().addListSelectionListener(lambda -> {
+	        // Este código se ejecuta CADA VEZ que la selección cambia.
+			if (!lambda.getValueIsAdjusting()) {
+	            boolean filaSeleccionada = false;
+				if (tablaDepartamento.getSelectedRow() != -1) {
+					filaSeleccionada = true;
+				}
+				
+	            comprarBoton.setEnabled(filaSeleccionada);
+	            reservarBoton.setEnabled(filaSeleccionada);
+			}
+		});
+		
+		// Encargado de mostrar la barrita vertical.
+		JScrollPane scrollDepa = new JScrollPane(
+				this.tablaDepartamento,
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		
+		panel.add(scrollEdi);
+		panel.add(scrollDepa);
+		return panel;
 	}
 }
