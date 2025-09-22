@@ -2,14 +2,11 @@ package gestor;
 
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import modelo.entidades.Vendedor;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
@@ -265,7 +262,7 @@ public class DatabaseManager {
 			/*
 			 *  A diferencia de los Statement "normales", el Prepared necesita ser rellenado
 			 *  en cada valor '?' que encuentre, reemplazando con sea parámetro que sea.
-			 *  En este caso, se rellena con los valores que encuentre de los filtros (que no sean nulo).
+			 *  En este caso, se rellena con los valores que encuentre de los filtros (que no sean nulo). :D
 			 */
 			for (int i = 0; i < parametros.size(); i++) {
 	            statement.setObject(i + 1, parametros.get(i));
