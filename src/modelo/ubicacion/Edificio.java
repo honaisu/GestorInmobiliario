@@ -1,22 +1,27 @@
 package modelo.ubicacion;
 import java.util.LinkedList;
 
+import gestor.ProyectoInmobiliario;
+import modelo.datos.EntidadBase;
 
-public class Edificio {
-	private long id;
+
+public class Edificio extends EntidadBase {
 	private final String NOMBRE;
 	private LinkedList<Departamento> departamentos;
 	private Agregados informacion;
+	private ProyectoInmobiliario proyectoPadre = null;
 	
-	public Edificio(long id, String nombre, Agregados informacion) {
-		this.id = id;
+	public Edificio(long id, String nombre, Agregados informacion, ProyectoInmobiliario proyecto) {
+		super(id);
+		this.proyectoPadre = proyecto;
 		this.NOMBRE = nombre;
 		this.departamentos = new LinkedList<>();
 		this.informacion = informacion;
 	}
-	
+
+
 	public Edificio(long id, String nombre, String direccion, boolean piscina, boolean estacionamiento) {
-		this.id = id;
+		super(id);
 		this.NOMBRE = nombre;
 		
 		this.departamentos = new LinkedList<>();
@@ -35,7 +40,7 @@ public class Edificio {
 		return departamentos.remove(o);
 	}
 	
-	//sobrecarga (por si se quiere eliminar por primera ocurrencia, o por indice, o por codigo de departamento)
+	//sobrecarga (por si se quiere eliminar por primera o currencia, o por indice, o por codigo de departamento)
 	public Departamento removeDepartamento(int index) {
 		return departamentos.remove(index);
 	}
@@ -52,6 +57,7 @@ public class Edificio {
 	public void clear() {
 		departamentos.clear();
 	}
+	
 
 	public Departamento getDepartamento(int index) {
 		return departamentos.get(index);
@@ -74,5 +80,20 @@ public class Edificio {
 	
 	public Agregados getInformacion() {
 		return informacion;
+	}
+	
+	public String getNOMBRE() {
+		return NOMBRE;
+	}
+
+	public LinkedList<Departamento> getDepartamentos() {
+		return departamentos;
+	}
+
+	public ProyectoInmobiliario getProyectoPadre() {
+		return proyectoPadre;
+	}
+	public void setProyectoPadre(ProyectoInmobiliario proyecto) {
+		this.proyectoPadre = proyecto;
 	}
 }

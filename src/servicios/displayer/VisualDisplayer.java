@@ -20,6 +20,8 @@ import javax.swing.table.DefaultTableModel;
 
 import gestor.GestorInmobiliarioService;
 import gestor.ProyectoInmobiliario;
+import modelo.ubicacion.Departamento;
+import modelo.ubicacion.Edificio;
 
 /**
  * Clase encargada de mostrar todos los componentes visuales referentes
@@ -27,7 +29,7 @@ import gestor.ProyectoInmobiliario;
  */
 public class VisualDisplayer {
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
-	private JFrame visualFrame = new JFrame("Ver Proyecto");
+	private JFrame visualFrame;
 	
 	private DefaultTableModel defaultMain;
 	private JTable tablaProyecto;
@@ -141,14 +143,22 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
+	
 	private JPanel mainProyectorPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(500, 200));
 		
 		// Tabla con datos.
 		String[] columnas = {"ID", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
-		this.defaultMain = new DefaultTableModel(columnas, 0);
+		this.defaultMain = new DefaultTableModel(columnas, 0) {
+			@Override
+		    public boolean isCellEditable(int row, int column) {
+		        return false; // ninguna celda editable
+		    
+			};
+		};
 		this.tablaProyecto = new JTable(defaultMain);
+		
 		
 		// Para añadir funcionalidad al elegir una fila
 		tablaProyecto.getSelectionModel().addListSelectionListener(lambda -> {
@@ -177,8 +187,8 @@ public class VisualDisplayer {
 	private void accionOpcionesProyecto(OpcionesProyecto opcion) {
 		switch (opcion) {
 		case VER: {
-			int filaSeleccionada = tablaProyecto.getSelectedRow();
 			
+			/*
 			if (filaSeleccionada >= 0) {
 				String id = defaultMain.getValueAt(filaSeleccionada, 0).toString();
 	            String nombre = defaultMain.getValueAt(filaSeleccionada, 1).toString();
@@ -191,9 +201,10 @@ public class VisualDisplayer {
                         "Vendedor: " + vendedor + "\n" +
                         "Fecha de Ingreso: " + fecha;
 	            
-	            verProyectoPanel(filaSeleccionada);
 	            //JOptionPane.showMessageDialog(mainFrame, mensaje, "Detalles Proyecto", JOptionPane.PLAIN_MESSAGE);
 			}
+			*/
+			verProyectoPanel();
 			break;
 		}
 		case REGISTRAR: {
@@ -241,7 +252,11 @@ public class VisualDisplayer {
 	
 	//Frame Ver Proyecto
 	
-	private void verProyectoPanel(int filaSeleccionada) {
+	private void verProyectoPanel() {
+		int filaSeleccionada = tablaProyecto.getSelectedRow();
+		String titulo = tablaProyecto.getValueAt(filaSeleccionada, 1).toString();
+		
+		this.visualFrame = new JFrame("Ver Proyecto");
 		//visualFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		visualFrame.setResizable(false);
 		//visualFrame.setPreferredSize(new Dimension(400, 300));
@@ -249,9 +264,9 @@ public class VisualDisplayer {
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
 		
-		JPanel headerPanel = verHeaderPanel(filaSeleccionada);
+		JPanel headerPanel = verHeaderPanel(titulo);
 		JPanel opcionesPanel = verOpcionesPanel();
-		JPanel proyectorPanel = verProyectorPanel();
+		JPanel proyectorPanel = verProyectorPanel(filaSeleccionada);
 		
 		
 		mainPanel.add(proyectorPanel, BorderLayout.WEST);
@@ -265,12 +280,10 @@ public class VisualDisplayer {
 		
 	}
 	
-	private JPanel verHeaderPanel(int filaSel) {
+	private JPanel verHeaderPanel(String tit) {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(200, 50));
 		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-		
-		String tit = tablaProyecto.getValueAt(filaSel, 1).toString();
 		
 		JLabel titulo = new JLabel("Proyecto: " + tit, JLabel.LEFT);
 		titulo.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
@@ -294,7 +307,6 @@ public class VisualDisplayer {
 			JButton opcionBoton = new JButton();
 			opcionBoton.setText(o.getNombre());
 			
-			
 			if (OpcionesVer.COMPRAR.equals(o)) {
 				this.comprarBoton = opcionBoton;
 				this.comprarBoton.setEnabled(false);
@@ -317,9 +329,12 @@ public class VisualDisplayer {
 	private void accionOpcionesVer(OpcionesVer opcion) {
 		switch (opcion) {
 		case COMPRAR:{
+			
 			break;
 		}
 		case RESERVAR:{
+			int filaSelDepa = tablaDepartamento.getSelectedRow();
+			
 			break;
 		}
 		case SALIR:{
@@ -331,53 +346,169 @@ public class VisualDisplayer {
 		
 	}
 	
-	private JPanel verProyectorPanel() {
+	public void cargarEdificiosEnTabla(int filaSel) {
+		String id = defaultMain.getValueAt(filaSel, 0).toString();
+		long idProyectoSeleccionado = Long.parseLong(id);
+		
+		ProyectoInmobiliario proyectoSeleccionado = gestorService.getDatabaseManager()
+												.getMapProyectos()
+												.get(idProyectoSeleccionado);
+		
+		for (Edificio e : proyectoSeleccionado.getEdificios()) {
+			Object[] fila = {
+	            e.getId(),
+	            e.getNombre(),
+	            e.getInformacion().getDireccion(),
+	            e.getInformacion().isTienePiscina() ? "Sí" : "No",
+	            e.getInformacion().isTieneEstacionamiento() ? "Sí" : "No"
+	        };
+	        defaultEdi.addRow(fila);
+		}
+		
+		/* IMPLEMENTACIÓN ORIGINAL
+		Collection<Edificio> edificios = gestorService.getAllEdificios();
+
+        Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
+		
+		for (Edificio e : edificios) {
+		    if (e.getProyectoPadre().getId() == idProyectoSeleccionado) {
+		        Object[] fila = {
+		            e.getId(),
+		            e.getNombre(),
+		            e.getInformacion().getDireccion(),
+		            e.getInformacion().isTienePiscina() ? "Sí" : "No",
+		            e.getInformacion().isTieneEstacionamiento() ? "Sí" : "No"
+		        };
+		        defaultEdi.addRow(fila);
+		        //configurarListenerEdificios(e.getDepartamentos());
+		    }
+		}
+		*/
+	}
+	
+	private void cargarDepartamentosEnTabla(Edificio edificio) {
+	    // Limpiamos la tabla antes
+	    defaultDepa.setRowCount(0);
+
+	    for (Departamento d : edificio.getDepartamentos()) {
+	        Object[] fila = {
+	            d.getCodigo(),
+	            d.getNumeroPiso(),
+	            d.getMetrosCuadrados(),
+	            d.getEstado().toString(),
+	            d.getGestorPrecios().getPrecioActual()
+	        };
+	        defaultDepa.addRow(fila);
+	    }
+	    
+	    tablaDepartamento.clearSelection();
+	    
+	    comprarBoton.setEnabled(false);
+        reservarBoton.setEnabled(false);
+	}
+
+	
+	
+	private JPanel verProyectorPanel(int filaSel) {
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0));
 		//panel.setPreferredSize(new Dimension(500, 200));
 		
 		// Tabla Edificio.
 		String[] ediCols = {"ID", "Edificio", "Dirección", "Piscina", "Estacionamiento"};
-		this.defaultEdi = new DefaultTableModel(ediCols, 0);
+		
+		this.defaultEdi = new DefaultTableModel(ediCols, 0) {
+			@Override
+		    public boolean isCellEditable(int row, int column) {
+		        return false; // ninguna celda editable
+		    
+			};
+		};
+		
 		this.tablaEdificio = new JTable(defaultEdi);
+		
+		cargarEdificiosEnTabla(filaSel);
 		
 		// Para añadir funcionalidad al elegir una fila
 		tablaEdificio.getSelectionModel().addListSelectionListener(lambda -> {
 	        // Este código se ejecuta CADA VEZ que la selección cambia.
+			
+			//tablaDepartamento.clearSelection();
 			if (!lambda.getValueIsAdjusting()) {
-	            boolean filaSeleccionada = false;
-				if (tablaEdificio.getSelectedRow() != -1) {
-					filaSeleccionada = true;
+				
+				int filaSelEdi = tablaEdificio.getSelectedRow();
+		        if (filaSelEdi == -1) return;
+		        
+	            // Recuperamos el ID del edificio desde la tabla
+	            long idEdificio = (long) defaultEdi.getValueAt(filaSelEdi, 0);
+	            
+	            // Buscar el edificio en caché
+	            
+	            Edificio edificioSel = gestorService.getMapEdificios()
+	            					.get(idEdificio);
+	            
+	            // Buscar el edificio en cache
+	            
+	            /* IMPLEMENTACION ORIGINAL
+	            Edificio edificioSel = gestorService.getAllEdificios()
+	                                .stream()
+	                                .filter(e -> e.getId() == idEdificio)
+	                                .findFirst()
+	                                .orElse(null);
+	            */
+	            
+	            if (edificioSel != null) {
+	                cargarDepartamentosEnTabla(edificioSel);
+	            }
+		        
+				
+			}
+		});
+		
+		//Tabla Departamento
+		String[] DepaCols = {"Código", "Piso", "metros^2", "Estado", "Precio"};
+		this.defaultDepa = new DefaultTableModel(DepaCols, 0) {
+			@Override
+		    public boolean isCellEditable(int row, int column) {
+		        return false; // ninguna celda editable
+		    
+			};
+		};
+		this.tablaDepartamento = new JTable(defaultDepa);
+		
+		// Para añadir funcionalidad al elegir una fila
+		tablaDepartamento.getSelectionModel().addListSelectionListener(lambda -> {
+			//tablaDepartamento.clearSelection();
+	        // Este código se ejecuta CADA VEZ que la selección cambia.
+			if (!lambda.getValueIsAdjusting()) {
+				int filaSelDepa = tablaDepartamento.getSelectedRow();
+				if (filaSelDepa != -1) {
+					String estado = defaultDepa.getValueAt(filaSelDepa, 3).toString();
+
+		            boolean disponible = estado.toString().equals("DISPONIBLE");
+		            boolean reservado = estado.toString().equals("RESERVADO");
+		            if(disponible) {
+		            	comprarBoton.setEnabled(disponible);
+			            reservarBoton.setEnabled(disponible);
+		            }else if(reservado) {
+		            	comprarBoton.setEnabled(reservado);
+		            	reservarBoton.setEnabled(false);
+		            }
+		        } else {
+		            // Nada seleccionado → deshabilitar botones
+		            comprarBoton.setEnabled(false);
+		            reservarBoton.setEnabled(false);
+		        
 				}
-				//TODO LOGICA VER LISTA DE DEPARTAMENTOS
 			}
 		});
 		
 		// Encargado de mostrar la barrita vertical.
+		
 		JScrollPane scrollEdi = new JScrollPane(
 				this.tablaEdificio,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
-		//Tabla Departamento
-		String[] DepaCols = {"Código", "Piso", "metros^2", "Estado", "Precio"};
-		this.defaultDepa = new DefaultTableModel(DepaCols, 0);
-		this.tablaDepartamento = new JTable(defaultDepa);
-		
-		// Para añadir funcionalidad al elegir una fila
-		tablaDepartamento.getSelectionModel().addListSelectionListener(lambda -> {
-	        // Este código se ejecuta CADA VEZ que la selección cambia.
-			if (!lambda.getValueIsAdjusting()) {
-	            boolean filaSeleccionada = false;
-				if (tablaDepartamento.getSelectedRow() != -1) {
-					filaSeleccionada = true;
-				}
-				
-	            comprarBoton.setEnabled(filaSeleccionada);
-	            reservarBoton.setEnabled(filaSeleccionada);
-			}
-		});
-		
-		// Encargado de mostrar la barrita vertical.
 		JScrollPane scrollDepa = new JScrollPane(
 				this.tablaDepartamento,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,

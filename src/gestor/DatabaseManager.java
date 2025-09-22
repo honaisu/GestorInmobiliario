@@ -146,10 +146,11 @@ public class DatabaseManager {
 				boolean tieneEstacionamiento = resultados.getBoolean("tiene_estacionamiento");
 				long proyectoId = resultados.getLong("proyecto_id");
 				
-				Edificio edificio = new Edificio(proyectoId, nombre, direccion, tienePiscina, tieneEstacionamiento);
+				Edificio edificio = new Edificio(id, nombre, direccion, tienePiscina, tieneEstacionamiento);
 				
 				ProyectoInmobiliario proyectoAsociado = cacheProyectos.get(proyectoId);
 				if (proyectoAsociado != null) {
+					edificio.setProyectoPadre(proyectoAsociado);
 					proyectoAsociado.addEdificio(edificio);
 					cacheEdificios.put(id, edificio);
 				}
@@ -318,5 +319,9 @@ public class DatabaseManager {
 			System.out.println("ESTADO: " + d.getEstado().name());
 			System.out.println("DIRECCION: " + d.getEdificioPadre().getInformacion().getDireccion());
 		}
+	}
+	
+	public HashMap<Long, Edificio> getMapEdificios(){
+		return cacheEdificios;
 	}
 }

@@ -1,9 +1,9 @@
 package modelo.ubicacion;
 
+import modelo.datos.EntidadBase;
 import modelo.datos.GestorPrecios;
 
-public class Departamento {
-	private long id;
+public class Departamento extends EntidadBase {
 	private final String codigo;
 	private final int numeroPiso;
 	private double metrosCuadrados;
@@ -18,7 +18,7 @@ public class Departamento {
 	 */
 	public Departamento(long id, String codigo, int numeroPiso, 
 			double precioBase, Edificio edificio) {
-		this.id = id;
+		super(id);
 		this.codigo = codigo.toUpperCase();
 		this.numeroPiso = numeroPiso;
 		this.precios = new GestorPrecios(precioBase);
@@ -33,7 +33,7 @@ public class Departamento {
 	public Departamento(long id, String codigo, int numeroPiso, 
 			double metrosCuadrados, int habitaciones, int banos, 
 			EstadoDepartamento estado, double precioBase, double precioActual) {
-		this.id = id;
+		super(id);
 		this.codigo = codigo.toUpperCase();
 		this.numeroPiso = numeroPiso;
 		this.metrosCuadrados = metrosCuadrados;
@@ -41,10 +41,6 @@ public class Departamento {
 		this.banos = banos;
 		this.estado = estado;
 		this.precios = new GestorPrecios(precioBase, precioActual);
-	}
-	
-	public long getId() {
-		return id;
 	}
 	
 	public String getCodigo() {
