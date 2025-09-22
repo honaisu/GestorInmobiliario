@@ -1,28 +1,26 @@
 package gestor;
 
+import java.util.List;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.LinkedList;
 
-import modelo.entidades.Vendedor;
+import modelo.datos.EntidadBase;
 import modelo.ubicacion.Edificio;
 
-public class ProyectoInmobiliario {
-	private long id;
+public class ProyectoInmobiliario extends EntidadBase {
 	private String nombreProyecto;
 	private String vendedor;
 	private LocalDate fecha;
-	private LinkedList<Edificio> edificio;
-	
+	private LinkedList<Edificio> edificios;
 	
 	public ProyectoInmobiliario(long id, String nombreProyecto, String vendedor, LocalDate fecha) {
-		this.id = id;
+		super(id);
 		this.nombreProyecto = nombreProyecto;
 		this.vendedor = vendedor;
 		this.fecha = fecha;
-		this.edificio = new LinkedList<>();
+		this.edificios = new LinkedList<>();
 	}
 
 	public String getNombreProyecto() {
@@ -31,10 +29,6 @@ public class ProyectoInmobiliario {
 
 	public String getFecha() {
 		return fecha.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM));
-	}
-	
-	public long getId() {
-		return id;
 	}
 	
 	public String getVendedor() {
@@ -46,6 +40,17 @@ public class ProyectoInmobiliario {
 	}
 
 	public void addEdificio(Edificio edificio) {
-		this.edificio.add(edificio);
+		this.edificios.add(edificio);
+	}
+	
+	public Edificio getEdificio(long idEdificio) {
+		for (Edificio e : edificios) {
+			if (e.getId() == idEdificio) return e;
+		}
+		return null;
+	}
+	
+	public List<Edificio> getEdificios() {
+		return edificios;
 	}
 }

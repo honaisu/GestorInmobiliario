@@ -3,13 +3,12 @@ package modelo.ubicacion;
 public class Agregados {
 	private final String direccion;
 	private boolean tienePiscina;
-	private boolean tieneEstacionamineto;
+	private boolean tieneEstacionamiento;
 	
-	
-	public Agregados(String direccion, boolean tienePiscina, boolean tieneEstacionamineto) {
+	public Agregados(String direccion, boolean tienePiscina, boolean tieneEstacionamiento) {
 		this.direccion = direccion;
 		this.tienePiscina = tienePiscina;
-		this.tieneEstacionamineto = tieneEstacionamineto;
+		this.tieneEstacionamiento = tieneEstacionamiento;
 	}
 	
 	public Agregados(String direccion) {
@@ -27,13 +26,13 @@ public class Agregados {
 	}
 
 
-	public boolean isTieneEstacionamineto() {
-		return tieneEstacionamineto;
+	public boolean isTieneEstacionamiento() {
+		return tieneEstacionamiento;
 	}
 
 
-	public void setTieneEstacionamineto(boolean tieneEstacionamineto) {
-		this.tieneEstacionamineto = tieneEstacionamineto;
+	public void setTieneEstacionamiento(boolean tieneEstacionamineto) {
+		this.tieneEstacionamiento = tieneEstacionamineto;
 	}
 
 

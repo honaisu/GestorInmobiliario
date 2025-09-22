@@ -1,34 +1,61 @@
 package modelo.ubicacion;
 
-public class Departamento {
-	private long id;
-	private final String CODIGO;
-	private final int NUMERO_PISO;
+import modelo.datos.EntidadBase;
+import modelo.datos.GestorPrecios;
+
+public class Departamento extends EntidadBase {
+	private final String codigo;
+	private final int numeroPiso;
 	private double metrosCuadrados;
 	private EstadoDepartamento estado;
 	private int habitaciones;
 	private int banos;
-	private double precio;
+	private GestorPrecios precios;
+	private Edificio edificioPadre = null;
 	
+	/**
+	 * Constructor usado para generar nuevos departamentos "vacíos".
+	 */
+	public Departamento(long id, String codigo, int numeroPiso, 
+			double precioBase, Edificio edificio) {
+		super(id);
+		this.codigo = codigo.toUpperCase();
+		this.numeroPiso = numeroPiso;
+		this.precios = new GestorPrecios(precioBase);
+		this.estado = EstadoDepartamento.DISPONIBLE;
+		this.edificioPadre = edificio;
+	}
+	
+	/**
+	 * Constructor usado para poder crear los datos del departamento
+	 * dentro de la DB.
+	 */
 	public Departamento(long id, String codigo, int numeroPiso, 
 			double metrosCuadrados, int habitaciones, int banos, 
-			EstadoDepartamento estado, double precioBase) {
-		this.id = id;
-		this.CODIGO = codigo.toUpperCase();
-		this.NUMERO_PISO = numeroPiso;
+			EstadoDepartamento estado, double precioBase, double precioActual) {
+		super(id);
+		this.codigo = codigo.toUpperCase();
+		this.numeroPiso = numeroPiso;
 		this.metrosCuadrados = metrosCuadrados;
 		this.habitaciones = habitaciones;
 		this.banos = banos;
 		this.estado = estado;
-		this.precio = precioBase;
+		this.precios = new GestorPrecios(precioBase, precioActual);
 	}
 	
 	public String getCodigo() {
-		return CODIGO;
+		return codigo;
+	}
+	public double getMetrosCuadrados() {
+		return metrosCuadrados;
+	}
+	
+	public EstadoDepartamento getEstado() {
+		return estado;
 	}
 
 	public int getNumeroPiso() {
-		return NUMERO_PISO;
+		return numeroPiso;
 	}
 
 	public int getHabitaciones() {
@@ -38,25 +65,12 @@ public class Departamento {
 		return banos;
 	}
 	
-	//Maneja precios dinámicamente
-	public void setPrecio(double precio) {
-		this.precio = precio;
+	public GestorPrecios getGestorPrecios() {
+		return precios;
 	}
 	
-	public void setPrecio(double precio, int metros) {
-		this.precio = precio * (1.2 * metros + 10000);
-	}
-	
-	public void setPrecio(double precio, int metros, int banos) {
-		this.precio = precio *(1.4 *metros + 10000) + banos * 100000;
-	}
-	
-	public void setPrecio(double precio, int metros, int banos, int numPiso){
-		if (numPiso > 0) {
-			this.precio = (precio *(1.4 *metros + 10000) + banos * 100000)*(numPiso);
-		}else {
-			this.precio = (precio *(1.4 *metros + 10000) + banos * 100000)*(numPiso + 1);
-		}
+	public Edificio getEdificioPadre() {
+		return edificioPadre;
 	}
 	
 	public void setHabitaciones(int habitaciones) {
@@ -65,5 +79,9 @@ public class Departamento {
 
 	public void setBanos(int banos) {
 		this.banos = banos;
+	}
+	
+	public void setEdificioPadre(Edificio e) {
+		this.edificioPadre = e;
 	}
 }

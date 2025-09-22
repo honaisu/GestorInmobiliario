@@ -2,11 +2,8 @@ package gestor;
 
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Map;
 
-import modelo.entidades.Vendedor;
 import modelo.ubicacion.Edificio;
 
 public class GestorInmobiliarioService {
@@ -15,8 +12,25 @@ public class GestorInmobiliarioService {
 	public GestorInmobiliarioService() {
 		this.databaseManager = DatabaseManager.getDatabase();
 	}
+	
+	public DatabaseManager getDatabaseManager() {
+		return databaseManager;
+	}
 
 	public Collection<ProyectoInmobiliario> getAllProyectos() {
         return databaseManager.getMapProyectos().values();
     }
+	
+	public Collection<Edificio> getAllEdificios(){
+		return databaseManager.getMapEdificios().values();
+	}
+	
+	public Map<Long, Edificio> getMapEdificios() {
+		return databaseManager.getMapEdificios();
+	}
+	
+	/*TODO terminar esta implementación
+	public Edificio getEdificioPorId(long idEdificio) {
+		Map<Long, Edificio> mapEdificios = databaseManager.getMapEdificios();
+	}*/
 }
