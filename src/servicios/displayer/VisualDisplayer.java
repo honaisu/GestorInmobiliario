@@ -214,12 +214,12 @@ public class VisualDisplayer {
 	                "Registrar Proyecto", 
 	                JOptionPane.QUESTION_MESSAGE);
 			
-				if (nombreProyecto != null) {
-					Object[] nuevaFila = {
-		                defaultMain.getRowCount() + 1, 	// ID autoincremental simple
-		                nombreProyecto,               	// El nombre que ingresó el usuario
-		                "Gato Ingeniero",             	// Vendedor de prueba 😸
-		                "2025-09-19"                  	// Fecha de prueba
+			if (nombreProyecto != null) {
+				Object[] nuevaFila = {
+		                defaultMain.getRowCount() + 1, // ID autoincremental simple
+		                nombreProyecto,               // El nombre que ingresó el usuario
+		                "Gato Ingeniero",             // Vendedor de prueba 😸
+		                "2025-09-19"                  // Fecha de prueba
 		            };
 				
 				defaultMain.addRow(nuevaFila);
@@ -335,6 +335,7 @@ public class VisualDisplayer {
 		case RESERVAR:{
 			int filaSelDepa = tablaDepartamento.getSelectedRow();
 			
+			
 			break;
 		}
 		case SALIR:{
@@ -347,28 +348,9 @@ public class VisualDisplayer {
 	}
 	
 	public void cargarEdificiosEnTabla(int filaSel) {
-		String id = defaultMain.getValueAt(filaSel, 0).toString();
-		long idProyectoSeleccionado = Long.parseLong(id);
-		
-		ProyectoInmobiliario proyectoSeleccionado = gestorService.getDatabaseManager()
-												.getMapProyectos()
-												.get(idProyectoSeleccionado);
-		
-		for (Edificio e : proyectoSeleccionado.getEdificios()) {
-			Object[] fila = {
-	            e.getId(),
-	            e.getNombre(),
-	            e.getInformacion().getDireccion(),
-	            e.getInformacion().isTienePiscina() ? "Sí" : "No",
-	            e.getInformacion().isTieneEstacionamiento() ? "Sí" : "No"
-	        };
-	        defaultEdi.addRow(fila);
-		}
-		
-		/* IMPLEMENTACIÓN ORIGINAL
 		Collection<Edificio> edificios = gestorService.getAllEdificios();
-
-        Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
+		String id = defaultMain.getValueAt(filaSel, 0).toString();
+		int idProyectoSeleccionado = Integer.parseInt(id);
 		
 		for (Edificio e : edificios) {
 		    if (e.getProyectoPadre().getId() == idProyectoSeleccionado) {
@@ -383,7 +365,6 @@ public class VisualDisplayer {
 		        //configurarListenerEdificios(e.getDepartamentos());
 		    }
 		}
-		*/
 	}
 	
 	private void cargarDepartamentosEnTabla(Edificio edificio) {
@@ -415,7 +396,6 @@ public class VisualDisplayer {
 		
 		// Tabla Edificio.
 		String[] ediCols = {"ID", "Edificio", "Dirección", "Piscina", "Estacionamiento"};
-		
 		this.defaultEdi = new DefaultTableModel(ediCols, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -423,7 +403,6 @@ public class VisualDisplayer {
 		    
 			};
 		};
-		
 		this.tablaEdificio = new JTable(defaultEdi);
 		
 		cargarEdificiosEnTabla(filaSel);
@@ -431,35 +410,25 @@ public class VisualDisplayer {
 		// Para añadir funcionalidad al elegir una fila
 		tablaEdificio.getSelectionModel().addListSelectionListener(lambda -> {
 	        // Este código se ejecuta CADA VEZ que la selección cambia.
-			
 			//tablaDepartamento.clearSelection();
 			if (!lambda.getValueIsAdjusting()) {
 				
 				int filaSelEdi = tablaEdificio.getSelectedRow();
-		        if (filaSelEdi == -1) return;
-		        
-	            // Recuperamos el ID del edificio desde la tabla
-	            long idEdificio = (long) defaultEdi.getValueAt(filaSelEdi, 0);
-	            
-	            // Buscar el edificio en caché
-	            
-	            Edificio edificioSel = gestorService.getMapEdificios()
-	            					.get(idEdificio);
-	            
-	            // Buscar el edificio en cache
-	            
-	            /* IMPLEMENTACION ORIGINAL
-	            Edificio edificioSel = gestorService.getAllEdificios()
-	                                .stream()
-	                                .filter(e -> e.getId() == idEdificio)
-	                                .findFirst()
-	                                .orElse(null);
-	            */
-	            
-	            if (edificioSel != null) {
-	                cargarDepartamentosEnTabla(edificioSel);
-	            }
-		        
+		        if (filaSelEdi != -1) {
+		            // Recuperamos el ID del edificio desde la tabla
+		            long idEdificio = (long) defaultEdi.getValueAt(filaSelEdi, 0);
+		            
+		            // Buscar el edificio en cache
+		            Edificio edificioSel = gestorService.getAllEdificios()
+		                                .stream()
+		                                .filter(e -> e.getId() == idEdificio)
+		                                .findFirst()
+		                                .orElse(null);
+
+		            if (edificioSel != null) {
+		                cargarDepartamentosEnTabla(edificioSel);
+		            }
+		        }
 				
 			}
 		});
