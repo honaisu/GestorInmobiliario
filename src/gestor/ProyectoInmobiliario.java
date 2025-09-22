@@ -1,12 +1,10 @@
 package gestor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.LinkedList;
 
-import modelo.entidades.Vendedor;
 import modelo.ubicacion.Edificio;
 
 public class ProyectoInmobiliario {
@@ -15,7 +13,6 @@ public class ProyectoInmobiliario {
 	private String vendedor;
 	private LocalDate fecha;
 	private LinkedList<Edificio> edificio;
-	
 	
 	public ProyectoInmobiliario(long id, String nombreProyecto, String vendedor, LocalDate fecha) {
 		this.id = id;

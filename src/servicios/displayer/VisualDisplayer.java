@@ -203,12 +203,12 @@ public class VisualDisplayer {
 	                "Registrar Proyecto", 
 	                JOptionPane.QUESTION_MESSAGE);
 			
-			if (nombreProyecto != null) {
-				Object[] nuevaFila = {
-		                defaultMain.getRowCount() + 1, // ID autoincremental simple
-		                nombreProyecto,               // El nombre que ingresó el usuario
-		                "Gato Ingeniero",             // Vendedor de prueba 😸
-		                "2025-09-19"                  // Fecha de prueba
+				if (nombreProyecto != null) {
+					Object[] nuevaFila = {
+		                defaultMain.getRowCount() + 1, 	// ID autoincremental simple
+		                nombreProyecto,               	// El nombre que ingresó el usuario
+		                "Gato Ingeniero",             	// Vendedor de prueba 😸
+		                "2025-09-19"                  	// Fecha de prueba
 		            };
 				
 				defaultMain.addRow(nuevaFila);

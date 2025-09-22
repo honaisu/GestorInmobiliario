@@ -8,7 +8,6 @@ public class Edificio {
 	private LinkedList<Departamento> departamentos;
 	private Agregados informacion;
 	
-
 	public Edificio(long id, String nombre, Agregados informacion) {
 		this.id = id;
 		this.NOMBRE = nombre;
@@ -56,6 +55,13 @@ public class Edificio {
 
 	public Departamento getDepartamento(int index) {
 		return departamentos.get(index);
+	}
+	
+	public Departamento getDepartamento(long idDepartamento) {
+		for (Departamento d : this.departamentos) {
+			if (d.getId() == idDepartamento) return d;
+		}
+		return null;
 	}
 
 	public boolean agregarDepartamento(Departamento e) {

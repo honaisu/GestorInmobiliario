@@ -5,7 +5,6 @@ public class Agregados {
 	private boolean tienePiscina;
 	private boolean tieneEstacionamineto;
 	
-	
 	public Agregados(String direccion, boolean tienePiscina, boolean tieneEstacionamineto) {
 		this.direccion = direccion;
 		this.tienePiscina = tienePiscina;
