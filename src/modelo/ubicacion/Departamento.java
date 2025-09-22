@@ -38,6 +38,18 @@ public class Departamento {
 		return banos;
 	}
 	
+	public double getMetrosCuadrados() {
+		return metrosCuadrados;
+	}
+
+	public EstadoDepartamento getEstado() {
+		return estado;
+	}
+	
+	public double getPrecio() {
+		return precio;
+	}
+	
 	//Maneja precios dinámicamente
 	public void setPrecio(double precio) {
 		this.precio = precio;
@@ -66,4 +78,9 @@ public class Departamento {
 	public void setBanos(int banos) {
 		this.banos = banos;
 	}
+
+	public long getId() {
+		return id;
+	}
+
 }

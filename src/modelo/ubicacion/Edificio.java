@@ -2,22 +2,26 @@ package modelo.ubicacion;
 import java.util.LinkedList;
 
 
-public class Edificio {
+public class Edificio{
 	private long id;
+	private long idProyecto;
 	private final String NOMBRE;
 	private LinkedList<Departamento> departamentos;
 	private Agregados informacion;
 	
 
-	public Edificio(long id, String nombre, Agregados informacion) {
+	public Edificio(long id, long idProyecto, String nombre, Agregados informacion) {
 		this.id = id;
+		this.idProyecto = idProyecto;
 		this.NOMBRE = nombre;
 		this.departamentos = new LinkedList<>();
 		this.informacion = informacion;
 	}
-	
-	public Edificio(long id, String nombre, String direccion, boolean piscina, boolean estacionamiento) {
+
+
+	public Edificio(long id, long idProyecto, String nombre, String direccion, boolean piscina, boolean estacionamiento) {
 		this.id = id;
+		this.idProyecto = idProyecto;
 		this.NOMBRE = nombre;
 		
 		this.departamentos = new LinkedList<>();
@@ -36,7 +40,7 @@ public class Edificio {
 		return departamentos.remove(o);
 	}
 	
-	//sobrecarga (por si se quiere eliminar por primera ocurrencia, o por indice, o por codigo de departamento)
+	//sobrecarga (por si se quiere eliminar por primera o currencia, o por indice, o por codigo de departamento)
 	public Departamento removeDepartamento(int index) {
 		return departamentos.remove(index);
 	}
@@ -53,6 +57,7 @@ public class Edificio {
 	public void clear() {
 		departamentos.clear();
 	}
+	
 
 	public Departamento getDepartamento(int index) {
 		return departamentos.get(index);
@@ -68,5 +73,21 @@ public class Edificio {
 	
 	public Agregados getInformacion() {
 		return informacion;
+	}
+	
+	public long getId() {
+		return id;
+	}
+
+	public String getNOMBRE() {
+		return NOMBRE;
+	}
+
+	public LinkedList<Departamento> getDepartamentos() {
+		return departamentos;
+	}
+
+	public long getProyectoId() {
+		return idProyecto;
 	}
 }

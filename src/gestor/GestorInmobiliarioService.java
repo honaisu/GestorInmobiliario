@@ -19,4 +19,9 @@ public class GestorInmobiliarioService {
 	public Collection<ProyectoInmobiliario> getAllProyectos() {
         return databaseManager.getMapProyectos().values();
     }
+	
+	public Collection<Edificio> getAllEdificios(){
+		return databaseManager.getMapEdificios().values();
+	}
+	
 }

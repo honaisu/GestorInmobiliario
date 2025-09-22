@@ -128,7 +128,7 @@ public class DatabaseManager {
 				boolean tieneEstacionamiento = resultados.getBoolean("tiene_estacionamiento");
 				long proyectoId = resultados.getLong("proyecto_id");
 				
-				Edificio edificio = new Edificio(proyectoId, nombre, direccion, tienePiscina, tieneEstacionamiento);
+				Edificio edificio = new Edificio(id, proyectoId, nombre, direccion, tienePiscina, tieneEstacionamiento);
 				
 				ProyectoInmobiliario proyectoAsociado = cacheProyectos.get(proyectoId);
 				if (proyectoAsociado != null) {
@@ -186,5 +186,9 @@ public class DatabaseManager {
 	 */
 	public HashMap<Long, ProyectoInmobiliario> getMapProyectos() {
 		return cacheProyectos;
+	}
+	
+	public HashMap<Long, Edificio> getMapEdificios(){
+		return cacheEdificios;
 	}
 }
