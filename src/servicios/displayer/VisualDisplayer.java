@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.awt.FlowLayout; //pa botones?
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -502,7 +503,7 @@ public class VisualDisplayer {
 	/// Parte de registrar ///
 	private void registrarProyectoPanel() {
 		
-		//LinkedList<Edificio> listaEdi = new LinkedList<Edificio>;
+		LinkedList<Edificio> listaEdi = new LinkedList<Edificio>();
 		
 		registrarFrame.setResizable(false);
 		//visualFrame.setPreferredSize(new Dimension(400, 300));
@@ -585,8 +586,6 @@ public class VisualDisplayer {
 		JLabel marcaAgua = new JLabel("🄯 Los Bien Corporation. All lefts reserved");
 		panel.add(marcaAgua, BorderLayout.SOUTH);
 		
-		
-		
 		return panel; 
 	}
 	
@@ -624,7 +623,6 @@ public class VisualDisplayer {
 	    JButton botonSalir = new JButton(OpcionesRegistrar.SALIR.getNombre());
 	    panelInferior.add(botonRegistrar);
 	    panelInferior.add(botonSalir);
-	   
 
 	    // Armar todo
 	    panel.add(panelCentral, BorderLayout.CENTER);
@@ -730,7 +728,6 @@ public class VisualDisplayer {
 		}
 		case AGREGAR_D:{
 			//es lo mismo que en lo de edifico pero en depa, pero igual diferente
-			
 			
 			break;
 		}
@@ -883,6 +880,7 @@ public class VisualDisplayer {
 	        defaultDepa.addRow(fila);
 	    }
 	}
+	
 	
 	private JPanel buscarProyectorPanel() {
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0));
