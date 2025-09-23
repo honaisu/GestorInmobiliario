@@ -18,6 +18,14 @@ public class Edificio extends EntidadBase {
 		this.departamentos = new LinkedList<>();
 		this.informacion = informacion;
 	}
+	
+	public Edificio(String nombre, String direccion, boolean piscina, boolean estacionamiento) {
+		super(null);
+		this.NOMBRE = nombre;
+		
+		this.departamentos = new LinkedList<>();
+		this.informacion = new Agregados(direccion, piscina, estacionamiento);
+	}
 
 
 	public Edificio(long id, String nombre, String direccion, boolean piscina, boolean estacionamiento) {

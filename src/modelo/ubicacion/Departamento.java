@@ -26,6 +26,15 @@ public class Departamento extends EntidadBase {
 		this.edificioPadre = edificio;
 	}
 	
+	public Departamento(String codigo, int numeroPiso, double precioBase, Edificio edificio) {
+		super(null);
+		this.codigo = codigo.toUpperCase();
+		this.numeroPiso = numeroPiso;
+		this.precios = new GestorPrecios(precioBase);
+		this.estado = EstadoDepartamento.DISPONIBLE;
+		this.edificioPadre = edificio;
+	}
+	
 	/**
 	 * Constructor usado para poder crear los datos del departamento
 	 * dentro de la DB.
