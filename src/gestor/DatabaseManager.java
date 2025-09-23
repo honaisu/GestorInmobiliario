@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
@@ -323,5 +325,159 @@ public class DatabaseManager {
 	
 	public HashMap<Long, Edificio> getMapEdificios(){
 		return cacheEdificios;
+	}
+	
+	/**
+	 * Agregar proyecto
+	 */
+	public void agregarNuevoProyecto(ProyectoInmobiliario proyecto) {
+		if (proyecto.getId() != null) return;
+		
+		// Elegimos un ID único para cada nuevo proyecto
+		// Negativo para evitar combinar con datos REALES.
+		long idTemporal = -System.currentTimeMillis();
+		proyecto.setId(idTemporal);
+		
+		cacheProyectos.put(proyecto.getId(), proyecto);
+	}
+	
+	/**
+	 * Modificar proyecto
+	 */
+	public void modificarProyecto(long idProyecto) {
+		
+	}
+	
+	/**
+	 * Actualiza la base de datos con los nuevos proyectos, edificios y departamentos
+	 * que se han agregado hasta el momento :)
+	 */
+	public void actualizarDatosDatabase() {
+		String proyectosQuery = "INSERT INTO Proyectos(nombre_proyecto, vendedor_asociado, fecha_oferta) VALUES(?, ?, ?)";
+		
+		try (PreparedStatement statement = connection.prepareStatement(proyectosQuery, Statement.RETURN_GENERATED_KEYS)) {
+			connection.setAutoCommit(false);
+			
+			for (Long idTemporal : cacheProyectos.keySet()) {
+				if (idTemporal > 0) continue;
+				
+				ProyectoInmobiliario proyectoNuevo = cacheProyectos.get(idTemporal);
+				
+				statement.setString(1, proyectoNuevo.getNombreProyecto());
+                statement.setString(2, proyectoNuevo.getVendedor());
+                statement.setString(3, proyectoNuevo.getFechaOferta());
+                
+                int affectedRows = statement.executeUpdate();
+
+                if (affectedRows == 0) {
+                    throw new SQLException("La inserción falló, no se afectaron filas.");
+                }
+                
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        long nuevoIdProyecto = generatedKeys.getLong(1);
+                        
+                        // Guardamos los edificios asociados a este nuevo proyecto
+                        insertarEdificios(proyectoNuevo, nuevoIdProyecto);
+                        
+                        // Actualizamos la caché con el ID correcto
+                        cacheProyectos.remove(idTemporal);
+                        proyectoNuevo.setId(nuevoIdProyecto);
+                        cacheProyectos.put(nuevoIdProyecto, proyectoNuevo);
+                    } else {
+                        throw new SQLException("No se pudo obtener el ID de un proyecto agregado.");
+                    }
+                }
+                
+				System.out.println("probar : " + proyectoNuevo.getNombreProyecto());
+			}
+			connection.commit();
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, e);
+		} finally {
+			try {				
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * Inserta los edificios de un proyecto en la base de datos.
+	 * 
+	 * @param proyecto 		El proyecto padre.
+	 * @param idProyecto 	El ID del proyecto ya insertado en la DB.
+	 * @throws SQLException
+	 */
+	private void insertarEdificios(ProyectoInmobiliario proyecto, long idProyecto) throws SQLException {
+	    String edificioQuery = "INSERT INTO Edificios(nombre_asociado, direccion, tiene_piscina, tiene_estacionamiento, proyecto_id) VALUES(?, ?, ?, ?, ?)";
+	    
+	    for (Edificio edificio : proyecto.getEdificios()) {
+	        // Asignamos el proyecto padre antes de guardarlo
+	        edificio.setProyectoPadre(proyecto);
+	        
+	        try (PreparedStatement statement = connection.prepareStatement(edificioQuery, Statement.RETURN_GENERATED_KEYS)) {
+	            statement.setString(1, edificio.getNombre());
+	            statement.setString(2, edificio.getInformacion().getDireccion());
+	            statement.setBoolean(3, edificio.getInformacion().isTienePiscina());
+	            statement.setBoolean(4, edificio.getInformacion().isTieneEstacionamiento());
+	            statement.setLong(5, idProyecto);
+
+	            statement.executeUpdate();
+
+	            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+	                if (generatedKeys.next()) {
+	                    long nuevoIdEdificio = generatedKeys.getLong(1);
+	                    
+	                    // Guardamos los departamentos de este edificio
+	                    insertarDepartamentos(edificio, nuevoIdEdificio);
+	                    
+	                    // Actualizamos la caché de edificios
+	                    edificio.setId(nuevoIdEdificio);
+	                    cacheEdificios.put(nuevoIdEdificio, edificio);
+	                } else {
+	                    throw new SQLException("No se pudo obtener el ID para el edificio: " + edificio.getNombre());
+	                }
+	            }
+	        }
+	    }
+	}
+
+	/**
+	 * Inserta los departamentos de un edificio en la base de datos.
+	 * 
+	 * @param edificio 		El edificio padre.
+	 * @param idEdificio 	El ID del edificio ya insertado en la DB.
+	 * @throws SQLException
+	 */
+	private void insertarDepartamentos(Edificio edificio, long idEdificio) throws SQLException {
+	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    
+	    for (Departamento depto : edificio.getDepartamentos()) {
+	        // Asignamos el edificio padre
+	        depto.setEdificioPadre(edificio);
+
+	        try (PreparedStatement statement = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
+	            statement.setString(1, depto.getCodigo());
+	            statement.setInt(2, depto.getNumeroPiso());
+	            statement.setDouble(3, depto.getMetrosCuadrados());
+	            statement.setInt(4, depto.getHabitaciones());
+	            statement.setInt(5, depto.getBanos());
+	            statement.setString(6, depto.getEstado().name());
+	            statement.setDouble(7, depto.getGestorPrecios().getPrecioBase());
+	            statement.setDouble(8, depto.getGestorPrecios().getPrecioActual());
+	            statement.setLong(9, idEdificio);
+
+	            statement.executeUpdate();
+	            
+	            // Opcional: Si también necesitas actualizar el ID del departamento en memoria
+	            try(ResultSet generatedKeys = statement.getGeneratedKeys()){
+	                if(generatedKeys.next()){
+	                    depto.setId(generatedKeys.getLong(1));
+	                }
+	            }
+	        }
+	    }
 	}
 }
