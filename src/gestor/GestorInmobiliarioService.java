@@ -33,4 +33,5 @@ public class GestorInmobiliarioService {
 	public Edificio getEdificioPorId(long idEdificio) {
 		Map<Long, Edificio> mapEdificios = databaseManager.getMapEdificios();
 	}*/
+	
 }

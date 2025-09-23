@@ -20,6 +20,21 @@ public class FiltroBusqueda {
 	private Boolean conEstacionamiento;
 	private String direccion;
 	
+	public FiltroBusqueda() {
+		
+	}
+	
+	public FiltroBusqueda(Double precioMin, Double precioMax, Integer habitacionesMin, Integer banosMin,
+			EstadoDepartamento estado, Boolean conPiscina, Boolean conEstacionamiento, String direccion) {
+		this.precioMin = precioMin;
+		this.precioMax = precioMax;
+		this.habitacionesMin = habitacionesMin;
+		this.banosMin = banosMin;
+		this.estado = estado;
+		this.conPiscina = conPiscina;
+		this.conEstacionamiento = conEstacionamiento;
+		this.direccion = direccion;
+	}
 	public Double getPrecioMin() {
 		return precioMin;
 	}

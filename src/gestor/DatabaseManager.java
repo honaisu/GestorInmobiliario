@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import excepciones.FiltroNoValidoException;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
@@ -309,8 +310,9 @@ public class DatabaseManager {
 		parametros.add(valor);
 	}
 	
-	public void probar() {
-		FiltroBusqueda bq = new FiltroBusqueda();
+	public void probar(FiltroBusqueda bq) {
+		//FiltroBusqueda bq = new FiltroBusqueda();
+		//bq.setEstado(EstadoDepartamento.DISPONIBLE);
 		List<Departamento> deps = getDepartamentosPorFiltro(bq);
 		for (Departamento d : deps) {
 			System.out.println("ID: " + d.getId());
