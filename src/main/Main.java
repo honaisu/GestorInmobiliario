@@ -23,5 +23,6 @@ public class Main {
 		database.probar();
 		
 		new VisualDisplayer(gestor).initialize();
+		//database.actualizarDatosDatabase();
 	}
 }

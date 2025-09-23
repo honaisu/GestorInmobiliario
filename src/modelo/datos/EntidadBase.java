@@ -1,13 +1,17 @@
 package modelo.datos;
 
 public abstract class EntidadBase {
-	protected long id;
+	protected Long id = null;
 	
-	public EntidadBase(long id) {
+	public EntidadBase(Long id) {
 		this.id = id;
 	}
 	
-	public long getId() {
+	public Long getId() {
 		return id;
+	}
+	
+	public void setId(long id) {
+		this.id = id;
 	}
 }
