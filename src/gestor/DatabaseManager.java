@@ -311,17 +311,6 @@ public class DatabaseManager {
 		parametros.add(valor);
 	}
 	
-	public void probar() {
-		FiltroBusqueda bq = new FiltroBusqueda();
-		List<Departamento> deps = getDepartamentosPorFiltro(bq);
-		for (Departamento d : deps) {
-			System.out.println("ID: " + d.getId());
-			System.out.println("CODIGO: " + d.getCodigo());
-			System.out.println("PRECIO: $" + d.getGestorPrecios().getPrecioActual());
-			System.out.println("ESTADO: " + d.getEstado().name());
-			System.out.println("DIRECCION: " + d.getEdificioPadre().getInformacion().getDireccion());
-		}
-	}
 	
 	public HashMap<Long, Edificio> getMapEdificios(){
 		return cacheEdificios;

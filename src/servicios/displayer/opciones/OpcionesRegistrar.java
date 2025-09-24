@@ -1,4 +1,4 @@
-package servicios.displayer;
+package servicios.displayer.opciones;
 
 public enum OpcionesRegistrar{
 	AGREGAR_E("Agregar Edificio"),
@@ -8,12 +8,12 @@ public enum OpcionesRegistrar{
 	REGISTRAR("Registrar Proyecto"),
 	SALIR("Cancelar");
 	
-	String nombre;
-	OpcionesRegistrar(String nombre) {
+	private String nombre;
+	private OpcionesRegistrar(String nombre) {
 		this.nombre = nombre;
 	}
 	
-	String getNombre() {
+	public String getNombre() {
 		return this.nombre;
 	}
 
@@ -84,18 +84,3 @@ private JPanel registrarProyectorPanel() {
 	}
 	
 	*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

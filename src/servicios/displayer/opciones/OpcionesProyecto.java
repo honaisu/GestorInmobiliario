@@ -1,4 +1,4 @@
-package servicios.displayer;
+package servicios.displayer.opciones;
 
 public enum OpcionesProyecto {
 	REGISTRAR("Registrar un Proyecto"),
@@ -6,12 +6,12 @@ public enum OpcionesProyecto {
 	BUSCAR("Buscar por Filtro"),
 	SALIR("Salir del Programa");
 	
-	String nombre;
-	OpcionesProyecto(String nombre) {
+	private String nombre;
+	private OpcionesProyecto(String nombre) {
 		this.nombre = nombre;
 	}
 	
-	String getNombre() {
+	public String getNombre() {
 		return this.nombre;
 	}
 }
