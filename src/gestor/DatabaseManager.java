@@ -347,8 +347,15 @@ public class DatabaseManager {
 		try (PreparedStatement statement = connection.prepareStatement(proyectosQuery, Statement.RETURN_GENERATED_KEYS)) {
 			connection.setAutoCommit(false);
 			
-			for (Long idTemporal : cacheProyectos.keySet()) {
-				if (idTemporal > 0) continue;
+			
+			//gpt
+			List<Long> idsTemporales = new ArrayList<>();
+			for (Long id : cacheProyectos.keySet()) {
+			    if (id < 0) idsTemporales.add(id);
+			}
+			
+			
+			for (Long idTemporal : idsTemporales) {
 				
 				ProyectoInmobiliario proyectoNuevo = cacheProyectos.get(idTemporal);
 				
