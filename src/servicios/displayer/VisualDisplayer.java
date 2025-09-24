@@ -950,8 +950,8 @@ public class VisualDisplayer {
 		    }
 
 		    // Crear el proyecto con un ID nuevo
-		    long nuevoId = gestorService.getAllProyectos().size() + 1; 
-		    ProyectoInmobiliario nuevoProyecto = new ProyectoInmobiliario(nuevoId, nombreProyecto, vendedor, fecha);
+		    //long nuevoId = gestorService.getAllProyectos().size() + 1; 
+		    ProyectoInmobiliario nuevoProyecto = new ProyectoInmobiliario(nombreProyecto, vendedor, fecha);
 
 		    // Asociar edificios
 		    for (Edificio e : edificiosPorProyecto) {
@@ -959,8 +959,11 @@ public class VisualDisplayer {
 		    }
 
 		    // Guardarlo en el gestor //nachoid?
-		    //gestorService.agregarProyecto(nuevoProyecto);
-
+		    gestorService.getDatabaseManager().agregarNuevoProyecto(nuevoProyecto);
+		    
+		    //y guardo en la base//si sirve, me hackie a nachoid
+		    gestorService.getDatabaseManager().actualizarDatosDatabase();
+		    
 		    // Refrescar tabla de la ventana principal
 		    cargarProyectosEnTabla();
 
@@ -968,7 +971,8 @@ public class VisualDisplayer {
 		    JOptionPane.showMessageDialog(registrarFrame,
 		        "Proyecto registrado con éxito.",
 		        "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
+		    
+		    mainFrame.setVisible(true);
 		    registrarFrame.dispose(); // cerrar la ventana de registrar
 		    break;
 		}
