@@ -175,7 +175,7 @@ public class VisualDisplayer {
 	
 	private JPanel mainProyectorPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		panel.setPreferredSize(new Dimension(500, 200));
+		panel.setPreferredSize(new Dimension(700, 200));
 		
 		// Tabla con datos.
 		String[] columnas = {"ID", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
@@ -188,6 +188,18 @@ public class VisualDisplayer {
 		};
 		this.tablaProyecto = new JTable(defaultMain);
 		
+		//Formatear columnas
+		
+		
+		
+		
+		tablaProyecto.getColumnModel().getColumn(0).setPreferredWidth(5);  	// ID
+		tablaProyecto.getColumnModel().getColumn(1).setPreferredWidth(90);  // Direccion
+		tablaProyecto.getColumnModel().getColumn(2).setPreferredWidth(90);  // Vendedor
+		tablaProyecto.getColumnModel().getColumn(3).setPreferredWidth(50);  // fecha
+		for (int i = 0; i < tablaProyecto.getColumnCount(); i++) {
+			tablaProyecto.getColumnModel().getColumn(i).setResizable(false);
+		}
 		
 		// Para añadir funcionalidad al elegir una fila
 		tablaProyecto.getSelectionModel().addListSelectionListener(lambda -> {
@@ -786,7 +798,7 @@ public class VisualDisplayer {
 		
 		
 		/// Tabla Departamento ///
-		String[] DepaCols = {"Código", "Piso", "metros^2", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "Metros^2", "Estado", "Precio"};
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0);
 		this.tablaDepartamento = new JTable(defaultDepa);
 		
@@ -875,7 +887,8 @@ public class VisualDisplayer {
 	            d.getHabitaciones(),
 	            d.getBanos(),
 	            d.getEstado().toString(),
-	            d.getGestorPrecios().getPrecioActual()
+	            d.getGestorPrecios().getPrecioActual(),
+	            d.getEdificioPadre().getInformacion().getDireccion()
 	        };
 	        defaultDepa.addRow(fila);
 	    }
@@ -886,7 +899,7 @@ public class VisualDisplayer {
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0));
 		
 		//Tabla Departamento
-		String[] DepaCols = {"Código", "Piso", "metros^2", "Habitaciones", "Baños", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "Metros²", "Habitaciones", "Baños", "Estado", "Precio", "Dirección"};
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -896,6 +909,7 @@ public class VisualDisplayer {
 		};
 		
 		this.tablaDepartamentosFiltrados = new JTable(defaultDepa);
+	
 		
 		for (int i = 0; i < tablaDepartamentosFiltrados.getColumnCount(); i++) {
 			tablaDepartamentosFiltrados.getColumnModel().getColumn(i).setResizable(false);
@@ -909,6 +923,11 @@ public class VisualDisplayer {
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(5).setPreferredWidth(100); // Estado
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(6).setPreferredWidth(60); // Precio
 		
+		DatabaseManager database = gestorService.getDatabaseManager();
+		List<Departamento> listaDepas = database.getDepartamentosPorFiltro(new FiltroBusqueda());
+	    cargarDepartamentosEnTabla(listaDepas);
+	    
+	    
 		JScrollPane scrollDepa = new JScrollPane(
 				this.tablaDepartamentosFiltrados,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -1013,9 +1032,9 @@ public class VisualDisplayer {
 	        // --- Probar ---
 	        FiltroBusqueda filtro = new FiltroBusqueda(precioMin, precioMax, habitaciones, banios,
 					estado, conPiscina, conEstacionamiento, direccion);
-		    
+
+	        
 		    DatabaseManager database = gestorService.getDatabaseManager();
-		    
 		    List<Departamento> listaDepas = database.getDepartamentosPorFiltro(filtro);
 		    cargarDepartamentosEnTabla(listaDepas);
 
