@@ -20,8 +20,9 @@ public class Main {
 		
 		GestorInmobiliarioService gestor = new GestorInmobiliarioService();
 		
-		database.probar();
+		//database.probar();
 		
 		new VisualDisplayer(gestor).initialize();
+		//database.actualizarDatosDatabase();
 	}
 }

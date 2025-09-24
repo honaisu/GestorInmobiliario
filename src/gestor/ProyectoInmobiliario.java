@@ -22,6 +22,14 @@ public class ProyectoInmobiliario extends EntidadBase {
 		this.fecha = fecha;
 		this.edificios = new LinkedList<>();
 	}
+	
+	public ProyectoInmobiliario(String nombreProyecto, String vendedor, LocalDate fecha) {
+		super(null);
+		this.nombreProyecto = nombreProyecto;
+		this.vendedor = vendedor;
+		this.fecha = fecha;
+		this.edificios = new LinkedList<>();
+	}
 
 	public String getNombreProyecto() {
 		return nombreProyecto;

@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.awt.FlowLayout; //pa botones?
 import java.util.Collection;
 import java.util.Map;
@@ -16,7 +18,9 @@ import java.time.LocalDate;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton; 
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
@@ -27,10 +31,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;//para cosa de <cosa>
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.SwingConstants;
-import javax.swing.SpinnerNumberModel;//para cosa de <cosa>
+import javax.swing.Timer;
 
+import gestor.DatabaseManager;
+import gestor.FiltroBusqueda;
 import gestor.GestorInmobiliarioService;
 import gestor.ProyectoInmobiliario;
 import modelo.ubicacion.Departamento;
@@ -43,8 +50,8 @@ import modelo.ubicacion.EstadoDepartamento;
  */
 public class VisualDisplayer {
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
-	//private JFrame registrarFrame = new JFrame("Registrar Proyecto");
 	private JFrame registrarFrame;
+	private JFrame buscarFrame = new JFrame("Filtrar Edificios");
 	private JFrame visualFrame;
 	
 	private DefaultTableModel defaultMain;
@@ -55,6 +62,7 @@ public class VisualDisplayer {
 	
 	private DefaultTableModel defaultDepa;
 	private JTable tablaDepartamento;
+	private JTable tablaDepartamentosFiltrados;
 	
 	private JButton reservarBoton;
 	private JButton verBoton;
@@ -163,14 +171,12 @@ public class VisualDisplayer {
 				this.verBoton = opcionBoton;
 				this.verBoton.setEnabled(false);
 			}
-			
 			opcionBoton.addActionListener(lambda -> {
 				accionOpcionesProyecto(o);
 			});
 			
 			panel.add(opcionBoton);
 		}
-		
 		return panel;
 	}
 	
@@ -218,59 +224,18 @@ public class VisualDisplayer {
 	private void accionOpcionesProyecto(OpcionesProyecto opcion) {
 		switch (opcion) {
 		case VER: {
-			
-			/*
-			if (filaSeleccionada >= 0) {
-				String id = defaultMain.getValueAt(filaSeleccionada, 0).toString();
-	            String nombre = defaultMain.getValueAt(filaSeleccionada, 1).toString();
-	            String vendedor = defaultMain.getValueAt(filaSeleccionada, 2).toString();
-	            String fecha = defaultMain.getValueAt(filaSeleccionada, 3).toString();
-	            
-	            String mensaje = "Detalles del Proyecto:\n\n" +
-                        "ID: " + id + "\n" +
-                        "Nombre: " + nombre + "\n" +
-                        "Vendedor: " + vendedor + "\n" +
-                        "Fecha de Ingreso: " + fecha;
-	            
-	            //JOptionPane.showMessageDialog(mainFrame, mensaje, "Detalles Proyecto", JOptionPane.PLAIN_MESSAGE);
-			}
-			*/
+			mainFrame.setVisible(false);
 			verProyectoPanel();
 			break;
 		}
 		case REGISTRAR: {
-			/*String nombreProyecto = JOptionPane.showInputDialog(
-	                mainFrame, 
-	                "Ingrese el nombre del proyecto:", 
-	                "Registrar Proyecto", 
-	                JOptionPane.QUESTION_MESSAGE);
-			
-				if (nombreProyecto != null) {
-					Object[] nuevaFila = {
-		                defaultMain.getRowCount() + 1, 	// ID autoincremental simple
-		                nombreProyecto,               	// El nombre que ingresó el usuario
-		                "Gato Ingeniero",             	// Vendedor de prueba 😸
-		                "2025-09-19"                  	// Fecha de prueba
-		            };
-				
-				defaultMain.addRow(nuevaFila);
-			}*/
-			
+			mainFrame.setVisible(false);
 			registrarProyectoPanel();
 			break;
 		}
-		/*
-		case ELIMINAR: {
-			int filaSeleccionada = tabla.getSelectedRow();
-			
-			if (filaSeleccionada >= 0) {				
-				defaultTable.removeRow(filaSeleccionada);
-			}
-			break;
-		}
-		*/
 		case BUSCAR: {
-			JOptionPane.showMessageDialog(mainFrame.getRootPane(), "Algún día va a buscar...");
+			mainFrame.setVisible(false);
+			buscarEdificioPanel();
 			break;
 		}
 		case SALIR:
@@ -283,13 +248,16 @@ public class VisualDisplayer {
 		return mainFrame;
 	}
 	
-	//Frame Ver Proyecto
+	
+	//----------------------
+	//	Frame Ver Proyecto
+	//----------------------
 	
 	private void verProyectoPanel() {
 		int filaSeleccionada = tablaProyecto.getSelectedRow();
 		String titulo = tablaProyecto.getValueAt(filaSeleccionada, 1).toString();
 		
-		this.visualFrame = new JFrame("Ver Proyecto");
+		visualFrame = new JFrame("Ver Proyecto");
 		//visualFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		visualFrame.setResizable(false);
 		//visualFrame.setPreferredSize(new Dimension(400, 300));
@@ -302,14 +270,22 @@ public class VisualDisplayer {
 		JPanel proyectorPanel = verProyectorPanel(filaSeleccionada);
 		
 		
-		mainPanel.add(proyectorPanel, BorderLayout.WEST);
 		mainPanel.add(headerPanel, BorderLayout.NORTH);
 		mainPanel.add(opcionesPanel, BorderLayout.EAST);
+		mainPanel.add(proyectorPanel, BorderLayout.WEST);
 		
 		visualFrame.add(mainPanel);
 		visualFrame.pack();
 		visualFrame.setLocationRelativeTo(null);
 		visualFrame.setVisible(true);
+		
+		visualFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent e) {
+		    	mainFrame.setVisible(true);
+		        
+		    }
+		});
 		
 	}
 	
@@ -362,16 +338,19 @@ public class VisualDisplayer {
 	private void accionOpcionesVer(OpcionesVer opcion) {
 		switch (opcion) {
 		case COMPRAR:{
-			
+			//TODO imprimir recibo como txt para 
 			break;
 		}
 		case RESERVAR:{
 			int filaSelDepa = tablaDepartamento.getSelectedRow();
+			int filaSelEdi = tablaEdificio.getSelectedRow();
+			
 			
 			break;
 		}
 		case SALIR:{
 			visualFrame.dispose();
+			mainFrame.setVisible(true);
 			break;
 		}
 		
@@ -397,26 +376,6 @@ public class VisualDisplayer {
 	        };
 	        defaultEdi.addRow(fila);
 		}
-		
-		/* IMPLEMENTACIÓN ORIGINAL
-		Collection<Edificio> edificios = gestorService.getAllEdificios();
-
-        Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
-		
-		for (Edificio e : edificios) {
-		    if (e.getProyectoPadre().getId() == idProyectoSeleccionado) {
-		        Object[] fila = {
-		            e.getId(),
-		            e.getNombre(),
-		            e.getInformacion().getDireccion(),
-		            e.getInformacion().isTienePiscina() ? "Sí" : "No",
-		            e.getInformacion().isTieneEstacionamiento() ? "Sí" : "No"
-		        };
-		        defaultEdi.addRow(fila);
-		        //configurarListenerEdificios(e.getDepartamentos());
-		    }
-		}
-		*/
 	}
 	
 	private void cargarDepartamentosEnTabla(Edificio edificio) {
@@ -428,6 +387,8 @@ public class VisualDisplayer {
 	            d.getCodigo(),
 	            d.getNumeroPiso(),
 	            d.getMetrosCuadrados(),
+	            d.getHabitaciones(),
+	            d.getBanos(),
 	            d.getEstado().toString(),
 	            d.getGestorPrecios().getPrecioActual()
 	        };
@@ -447,7 +408,6 @@ public class VisualDisplayer {
 		
 		// Tabla Edificio.
 		String[] ediCols = {"ID", "Edificio", "Dirección", "Piscina", "Estacionamiento"};
-		
 		this.defaultEdi = new DefaultTableModel(ediCols, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -455,7 +415,6 @@ public class VisualDisplayer {
 		    
 			};
 		};
-		
 		this.tablaEdificio = new JTable(defaultEdi);
 		
 		cargarEdificiosEnTabla(filaSel);
@@ -463,7 +422,6 @@ public class VisualDisplayer {
 		// Para añadir funcionalidad al elegir una fila
 		tablaEdificio.getSelectionModel().addListSelectionListener(lambda -> {
 	        // Este código se ejecuta CADA VEZ que la selección cambia.
-			
 			//tablaDepartamento.clearSelection();
 			if (!lambda.getValueIsAdjusting()) {
 				
@@ -478,26 +436,14 @@ public class VisualDisplayer {
 	            Edificio edificioSel = gestorService.getMapEdificios()
 	            					.get(idEdificio);
 	            
-	            // Buscar el edificio en cache
-	            
-	            /* IMPLEMENTACION ORIGINAL
-	            Edificio edificioSel = gestorService.getAllEdificios()
-	                                .stream()
-	                                .filter(e -> e.getId() == idEdificio)
-	                                .findFirst()
-	                                .orElse(null);
-	            */
-	            
 	            if (edificioSel != null) {
 	                cargarDepartamentosEnTabla(edificioSel);
 	            }
-		        
-				
 			}
 		});
 		
 		//Tabla Departamento
-		String[] DepaCols = {"Código", "Piso", "metros^2", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "metros^2", "Habitaciones", "Baños", "Estado", "Precio"};
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -514,7 +460,7 @@ public class VisualDisplayer {
 			if (!lambda.getValueIsAdjusting()) {
 				int filaSelDepa = tablaDepartamento.getSelectedRow();
 				if (filaSelDepa != -1) {
-					String estado = defaultDepa.getValueAt(filaSelDepa, 3).toString();
+					String estado = defaultDepa.getValueAt(filaSelDepa, 5).toString();
 
 		            boolean disponible = estado.toString().equals("DISPONIBLE");
 		            boolean reservado = estado.toString().equals("RESERVADO");
@@ -523,6 +469,10 @@ public class VisualDisplayer {
 			            reservarBoton.setEnabled(disponible);
 		            }else if(reservado) {
 		            	comprarBoton.setEnabled(reservado);
+		            	reservarBoton.setEnabled(false);
+		            }
+		            else {
+		            	comprarBoton.setEnabled(false);
 		            	reservarBoton.setEnabled(false);
 		            }
 		        } else {
@@ -553,9 +503,9 @@ public class VisualDisplayer {
 	}
 	
 	
-	//header-> parte arriba
-	//proyector-> las tablas y lo que queremos ver
-	//acciones-> los botones que tenemos disponible abajo
+	//----------------------------
+	//	Frame Registrar Proyecto
+	//----------------------------
 	
 	//coso benja
 	private void cargarDepartamentosEnTabla(List<Departamento> listaDepartamentos) {
@@ -583,6 +533,7 @@ public class VisualDisplayer {
 		
 		
 		registrarFrame = new JFrame("Registrar Proyecto");
+
 		registrarFrame.setResizable(false);
 		
 		
@@ -608,6 +559,14 @@ public class VisualDisplayer {
 		registrarFrame.pack();
 		registrarFrame.setLocationRelativeTo(null);
 		registrarFrame.setVisible(true);
+		
+		registrarFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent e) {
+		    	mainFrame.setVisible(true);
+		        
+		    }
+		});
 		
 	}
 	
@@ -648,10 +607,10 @@ public class VisualDisplayer {
 	    panelCentral.add(panelHora, BorderLayout.EAST);
 
 	    // Timer para actualizar la hora cada segundo (aunque solo ocupamos la fecha)
-	    javax.swing.Timer timer = new javax.swing.Timer(1000, e -> {
-	        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+	    Timer timer = new Timer(1000, e -> {
+	        LocalDateTime now = LocalDateTime.now();
 	        panelHora.setText("Fecha Ingreso: " + now.format(
-	            java.time.format.DateTimeFormatter.ofPattern("dd-MM-yy")
+	            DateTimeFormatter.ofPattern("dd-MM-yy")
 	        ));
 	    });
 	    timer.start();
@@ -662,8 +621,6 @@ public class VisualDisplayer {
 	    //Marca de agua abajo
 		JLabel marcaAgua = new JLabel("🄯 Los Bien Corporation. All lefts reserved");
 		panel.add(marcaAgua, BorderLayout.SOUTH);
-		
-		
 		
 		return panel; 
 	}
@@ -703,7 +660,6 @@ public class VisualDisplayer {
 	    JButton botonSalir = new JButton(OpcionesRegistrar.SALIR.getNombre());
 	    panelInferior.add(botonRegistrar);
 	    panelInferior.add(botonSalir);
-	   
 
 	    // Armar todo
 	    panel.add(panelCentral, BorderLayout.CENTER);
@@ -827,7 +783,6 @@ public class VisualDisplayer {
 		    break;
 		}
 		case AGREGAR_D:{
-			
 	
 			int filaSleccionada= tablaEdificio.getSelectedRow();
 	        if (filaSleccionada == -1) return;
@@ -1020,6 +975,7 @@ public class VisualDisplayer {
 		
 		
 		case SALIR:{
+			mainFrame.setVisible(true);
 			registrarFrame.dispose();
 			break;
 		}
@@ -1115,5 +1071,210 @@ public class VisualDisplayer {
 		return panel;
 		///------------------------///
 	}
+	
+	
+	
+	//-----------------------------
+	//	Frame Busqueda por Filtro
+	//-----------------------------
+	
+	
+	private void buscarEdificioPanel() {
+		buscarFrame.setResizable(false);
+		
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		
+		JPanel headerPanel = buscarHeaderPanel();
+		JPanel proyectorPanel = buscarProyectorPanel();
+		JPanel opcionesPanel = buscarFiltrosPanel();
+		
+		mainPanel.add(headerPanel, BorderLayout.NORTH);
+		mainPanel.add(proyectorPanel, BorderLayout.CENTER);
+		mainPanel.add(opcionesPanel, BorderLayout.EAST);
+		
+		buscarFrame.add(mainPanel);
+		buscarFrame.pack();
+		buscarFrame.setLocationRelativeTo(null);
+		buscarFrame.setVisible(true);
+		
+		buscarFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent e) {
+		    	mainFrame.setVisible(true);
+		        
+		    }
+		});
+	}
+	
+	private JPanel buscarHeaderPanel() {
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setPreferredSize(new Dimension(200, 50));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
+		JLabel titulo = new JLabel("Filtrar Edificios", JLabel.LEFT);
+		titulo.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+		
+		JLabel marcaAgua = new JLabel("🄯 Los Bien Corporation. All lefts reserved");
+
+		panel.add(titulo, BorderLayout.CENTER);
+		panel.add(marcaAgua, BorderLayout.SOUTH);
+		
+		return panel;
+	}
+	
+	
+	private JPanel buscarProyectorPanel() {
+		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0));
+		
+		//Tabla Departamento
+		String[] DepaCols = {"Código", "Piso", "metros^2", "Habitaciones", "Baños", "Estado", "Precio"};
+		this.defaultDepa = new DefaultTableModel(DepaCols, 0) {
+			@Override
+		    public boolean isCellEditable(int row, int column) {
+		        return false; // ninguna celda editable
+		    
+			};
+		};
+		
+		this.tablaDepartamentosFiltrados = new JTable(defaultDepa);
+		
+		for (int i = 0; i < tablaDepartamentosFiltrados.getColumnCount(); i++) {
+			tablaDepartamentosFiltrados.getColumnModel().getColumn(i).setResizable(false);
+		}
+		
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(0).setPreferredWidth(80);  // Código
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(1).setPreferredWidth(40);  // Piso
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(2).setPreferredWidth(100); // Metros^2
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(3).setPreferredWidth(90);  // Habitaciones
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(4).setPreferredWidth(70);  // Baños
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(5).setPreferredWidth(100); // Estado
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(6).setPreferredWidth(60); // Precio
+		
+		JScrollPane scrollDepa = new JScrollPane(
+				this.tablaDepartamentosFiltrados,
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		panel.add(scrollDepa);
+		return panel;
+	}
+	
+	private JPanel buscarFiltrosPanel() {
+		JPanel panel = new JPanel();
+	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+	    panel.setPreferredSize(new Dimension(250, 100));
+	    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+	    // --- Precio ---
+	    JPanel precioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    precioPanel.add(new JLabel("Precio:"), BorderLayout.NORTH);
+	    JTextField txtPrecioMin = new JTextField(6);
+	    JTextField txtPrecioMax = new JTextField(6);
+	    precioPanel.add(txtPrecioMin);
+	    precioPanel.add(new JLabel("-"));
+	    precioPanel.add(txtPrecioMax);
+
+	    // --- Habitaciones ---
+	    JPanel habPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    habPanel.add(new JLabel("Habitaciones:"));
+	    JSpinner spinnerHab = new JSpinner(new SpinnerNumberModel(1, 0, 5, 1));
+	    habPanel.add(spinnerHab);
+
+	    // --- Baños ---
+	    JPanel banioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    banioPanel.add(new JLabel("Baños:"));
+	    JSpinner spinnerBanios = new JSpinner(new SpinnerNumberModel(1, 0, 5, 1));
+	    banioPanel.add(spinnerBanios);
+
+	    // --- Estado ---
+	    JPanel estadoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    estadoPanel.add(new JLabel("Estado:"));
+	    JComboBox<String> comboEstado = new JComboBox<>(new String[]{null,"DISPONIBLE", "RESERVADO", "VENDIDO"});
+	    estadoPanel.add(comboEstado);
+
+	    // --- Dirección ---
+	    JPanel dirPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    dirPanel.add(new JLabel("Dirección:"));
+	    JTextField txtDireccion = new JTextField(10);
+	    dirPanel.add(txtDireccion);
+
+	    // --- Extras ---
+	    JPanel extrasPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    JCheckBox chkPiscina = new JCheckBox("Piscina");
+	    JCheckBox chkEstacionamiento = new JCheckBox("Estacionamiento");
+	    extrasPanel.add(chkPiscina);
+	    extrasPanel.add(chkEstacionamiento);
+
+	    // --- Botón de búsqueda ---
+	    JPanel botonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+	    JButton btnBuscar = new JButton("Buscar");
+	    botonPanel.add(btnBuscar);
+	    
+	    
+	    //Obtener Valores
+	    btnBuscar.addActionListener(e -> {
+	        // Aquí va el código cuando se hace click en el botón
+	    	System.out.flush(); 
+	        // Precio
+	        Double precioMin = null;
+	        Double precioMax = null;
+	        try {
+	            if (!txtPrecioMin.getText().trim().isEmpty()) {
+	                precioMin = Double.parseDouble(txtPrecioMin.getText().trim());
+	            }
+	            if (!txtPrecioMax.getText().trim().isEmpty()) {
+	                precioMax = Double.parseDouble(txtPrecioMax.getText().trim());
+	            }
+	        } catch (NumberFormatException ex) {
+	            JOptionPane.showMessageDialog(panel, "El precio debe ser numérico", "Error", JOptionPane.ERROR_MESSAGE);
+	            return; // salir si hay error
+	        }
+
+	        // Habitaciones y baños
+	        Integer habitaciones = (Integer) spinnerHab.getValue();
+	        Integer banios = (Integer) spinnerBanios.getValue();
+
+	        // Estado
+	        EstadoDepartamento estado;
+	        if (comboEstado.getSelectedItem() == null) {
+	        	estado = null;
+	        	
+	        }else {
+	        	estado = EstadoDepartamento.valueOf(comboEstado.getSelectedItem().toString());
+	        }
+	        
+
+	        // Dirección
+	        String direccion = txtDireccion.getText().trim();
+
+	        // Extras
+	        Boolean conPiscina = chkPiscina.isSelected();
+	        Boolean conEstacionamiento = chkEstacionamiento.isSelected();
+
+	        // --- Probar ---
+	        FiltroBusqueda filtro = new FiltroBusqueda(precioMin, precioMax, habitaciones, banios,
+					estado, conPiscina, conEstacionamiento, direccion);
+		    
+		    DatabaseManager database = gestorService.getDatabaseManager();
+		    
+		    List<Departamento> listaDepas = database.getDepartamentosPorFiltro(filtro);
+		    cargarDepartamentosEnTabla(listaDepas);
+
+	    });
+
+	    // Añadir todo
+	    panel.add(precioPanel);
+	    panel.add(habPanel);
+	    panel.add(banioPanel);
+	    panel.add(estadoPanel);
+	    panel.add(dirPanel);
+	    panel.add(extrasPanel);
+	    panel.add(Box.createVerticalStrut(20)); // espacio
+	    panel.add(botonPanel);
+
+	    return panel;
+		
+	}
+	
 	
 }
