@@ -1,10 +1,12 @@
-package gestor;
+package gestion;
 
 
 import java.util.Collection;
 import java.util.Map;
 
+import gestion.database.DatabaseManager;
 import modelo.ubicacion.Edificio;
+import modelo.ubicacion.ProyectoInmobiliario;
 
 public class GestorInmobiliarioService {
     private final DatabaseManager databaseManager;

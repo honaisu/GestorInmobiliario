@@ -1,8 +1,7 @@
 package modelo.ubicacion;
 import java.util.LinkedList;
 
-import gestor.ProyectoInmobiliario;
-import modelo.datos.EntidadBase;
+import modelo.entidades.EntidadBase;
 
 
 public class Edificio extends EntidadBase {

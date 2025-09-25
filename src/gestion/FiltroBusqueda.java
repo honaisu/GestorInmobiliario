@@ -1,4 +1,4 @@
-package gestor;
+package gestion;
 
 
 import modelo.ubicacion.EstadoDepartamento;

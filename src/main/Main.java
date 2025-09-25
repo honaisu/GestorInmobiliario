@@ -1,7 +1,7 @@
 package main;
 
-import gestor.DatabaseManager;
-import gestor.GestorInmobiliarioService;
+import gestion.GestorInmobiliarioService;
+import gestion.database.DatabaseManager;
 
 /*
  * Cada paquete de abajo se puede reemplazar a futuro.
@@ -20,9 +20,9 @@ public class Main {
 		
 		GestorInmobiliarioService gestor = new GestorInmobiliarioService();
 		
-		//database.probar();
 		
 		new VisualDisplayer(gestor).initialize();
+		//database.probar();
 		//database.actualizarDatosDatabase();
 	}
 }

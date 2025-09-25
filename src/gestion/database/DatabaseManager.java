@@ -1,4 +1,4 @@
-package gestor;
+package gestion.database;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -9,9 +9,11 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
+import gestion.FiltroBusqueda;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
+import modelo.ubicacion.ProyectoInmobiliario;
 
 /**
  * Clase encargada del manejo de todo lo referente a la database implementada con SQLite.
@@ -27,8 +29,9 @@ import modelo.ubicacion.EstadoDepartamento;
 public class DatabaseManager {
     private static final DatabaseManager database = new DatabaseManager();
     
-    private final HashMap<Long, ProyectoInmobiliario> cacheProyectos = new HashMap<>();
-    private final HashMap<Long, Edificio> cacheEdificios = new HashMap<>();
+    private final Map<Long, ProyectoInmobiliario> cacheProyectos = new HashMap<>();
+    private final Map<Long, Edificio> cacheEdificios = new HashMap<>();
+    private final List<Long> proyectosAEliminar = new ArrayList<>();
     
     private Connection connection;
 
@@ -312,7 +315,7 @@ public class DatabaseManager {
 	}
 	
 	
-	public HashMap<Long, Edificio> getMapEdificios(){
+	public Map<Long, Edificio> getMapEdificios(){
 		return cacheEdificios;
 	}
 	
@@ -337,6 +340,29 @@ public class DatabaseManager {
 		
 	}
 	
+	
+	public ProyectoInmobiliario eliminarProyecto(Long idProyecto) {
+		if (idProyecto > 0) {
+			proyectosAEliminar.add(idProyecto);
+		}
+		
+		return cacheProyectos.remove(idProyecto);
+	}
+	
+	private void procesarEliminaciones() throws SQLException {
+	    if (proyectosAEliminar.isEmpty()) return;
+
+	    String deleteQuery = "DELETE FROM Proyectos WHERE id = ?";
+	    try (PreparedStatement statement = connection.prepareStatement(deleteQuery)) {
+	        for (Long idEliminar : proyectosAEliminar) {
+	            statement.setLong(1, idEliminar);
+	            statement.addBatch();
+	        }
+	        statement.executeBatch(); // Ejecuta todas las eliminaciones de una
+	    }
+	    proyectosAEliminar.clear();
+	}
+	
 	/**
 	 * Actualiza la base de datos con los nuevos proyectos, edificios y departamentos
 	 * que se han agregado hasta el momento :)
@@ -347,13 +373,15 @@ public class DatabaseManager {
 		try (PreparedStatement statement = connection.prepareStatement(proyectosQuery, Statement.RETURN_GENERATED_KEYS)) {
 			connection.setAutoCommit(false);
 			
+			procesarEliminaciones();
 			
-			//gpt
 			List<Long> idsTemporales = new ArrayList<>();
 			for (Long id : cacheProyectos.keySet()) {
 			    if (id < 0) idsTemporales.add(id);
 			}
 			
+			// Si la lista está vacía, significa que no hay datos nuevos que agregar :).
+			if (idsTemporales.isEmpty()) return;
 			
 			for (Long idTemporal : idsTemporales) {
 				

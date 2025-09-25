@@ -1,7 +1,7 @@
 package modelo.ubicacion;
 
-import modelo.datos.EntidadBase;
-import modelo.datos.GestorPrecios;
+import gestion.GestorPrecios;
+import modelo.entidades.EntidadBase;
 
 public class Departamento extends EntidadBase {
 	private final String codigo;

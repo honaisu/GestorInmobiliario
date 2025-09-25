@@ -1,4 +1,4 @@
-package servicios.displayer.opciones;
+package gestion.opciones;
 
 public enum OpcionesVer {
 	COMPRAR("Comprar Seleccionado"),

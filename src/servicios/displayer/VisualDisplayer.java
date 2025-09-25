@@ -33,23 +33,43 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
+
+import gestion.FiltroBusqueda;
+import gestion.GestorInmobiliarioService;
+import gestion.database.DatabaseManager;
+import gestion.opciones.OpcionesProyecto;
+import gestion.opciones.OpcionesRegistrar;
+import gestion.opciones.OpcionesVer;
+
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-import gestor.DatabaseManager;
-import gestor.FiltroBusqueda;
-import gestor.GestorInmobiliarioService;
-import gestor.ProyectoInmobiliario;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
-import servicios.displayer.opciones.OpcionesProyecto;
-import servicios.displayer.opciones.OpcionesRegistrar;
-import servicios.displayer.opciones.OpcionesVer;
+import modelo.ubicacion.ProyectoInmobiliario;
 
 /**
  * Clase encargada de mostrar todos los componentes visuales referentes
  * a la interfaz gráfica de nuestro programa (implementada con Java Swing).
+ */
+/**
+ * 
+ */
+/**
+ * 
+ */
+/**
+ * 
+ */
+/**
+ * 
+ */
+/**
+ * 
+ */
+/**
+ * 
  */
 public class VisualDisplayer {
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
@@ -132,11 +152,43 @@ public class VisualDisplayer {
 
         // Pedimos los proyectos al controlador (no sabemos de dónde los saca, y no nos importa)
         Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
-
+        
+        /*
         // Iteramos y añadimos cada proyecto a la tabla
         for (ProyectoInmobiliario proyecto : proyectos) {
             Object[] fila = {
                 proyecto.getId(),
+                proyecto.getNombreProyecto(),
+                proyecto.getVendedor(),
+                proyecto.getFechaOferta()
+            };
+            defaultMain.addRow(fila);
+        }*/
+        long maxRealId = 0;
+        for (ProyectoInmobiliario proyecto : proyectos) {
+            if (proyecto.getId() > maxRealId) {
+                maxRealId = proyecto.getId();
+            }
+        }
+
+        // 4. Inicializamos nuestro contador para los IDs "falsos"
+        long proximoIdFalso = maxRealId + 1;
+
+        // 5. Iteramos y añadimos cada proyecto a la tabla con el ID correcto
+        for (ProyectoInmobiliario proyecto : proyectos) {
+            long idParaMostrar;
+
+            if (proyecto.getId() < 0) {
+                // Si es un proyecto temporal (ID negativo), usamos nuestro contador
+                idParaMostrar = proximoIdFalso;
+                proximoIdFalso++; // Lo incrementamos para el siguiente
+            } else {
+                // Si es un proyecto real (guardado), usamos su ID verdadero
+                idParaMostrar = proyecto.getId();
+            }
+
+            Object[] fila = {
+                idParaMostrar, // ¡Usamos el ID calculado para la vista!
                 proyecto.getNombreProyecto(),
                 proyecto.getVendedor(),
                 proyecto.getFechaOferta()

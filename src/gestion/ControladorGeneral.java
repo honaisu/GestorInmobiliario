@@ -1,4 +1,4 @@
-package servicios.displayer.frames;
+package gestion;
 
 public class ControladorGeneral {
 

@@ -14,8 +14,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import servicios.displayer.opciones.OpcionesProyecto;
+import gestion.ControladorGeneral;
+import gestion.opciones.OpcionesProyecto;
 
+/**
+ * Frame principal utilizado para nuestro programa. Se encarga de todo el orden
+ * que posee la interfaz gráfica principal presentada.
+ */
 public class MainFrame extends JFrame {
 	private ControladorGeneral controlador;
 	private JButton verBoton;
