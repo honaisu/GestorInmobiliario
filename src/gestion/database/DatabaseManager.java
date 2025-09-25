@@ -245,13 +245,14 @@ public class DatabaseManager {
 							"AND d.banos >= ?",
 							constructerQuery, parametros);
 		
-		agregarFiltroValido(filtro.getConEstacionamiento(), 
-							"AND e.tiene_piscina = 1", 
-							constructerQuery, parametros);
+		if (filtro.getConEstacionamiento()) {
+			constructerQuery.append("AND e.tiene_piscina = 1 ");
+		}
 		
-		agregarFiltroValido(filtro.getConPiscina(), 
-							"AND e.tiene_estacionamiento = 1", 
-							constructerQuery, parametros);
+		if (filtro.getConPiscina()) {
+			constructerQuery.append("AND e.tiene_estacionamiento = 1 ");
+		}
+		
 		
 		if (filtro.getEstado() != null) {		
 			agregarFiltroValido(filtro.getEstado().name(),	
@@ -305,15 +306,11 @@ public class DatabaseManager {
 	 */
 	public void agregarFiltroValido(Object valor, String lineaSQL, 
 			StringBuilder query, List<Object> parametros) {
-		if (valor == null || //Verifica null
-			(valor instanceof String && ((String) valor).isEmpty()) || // Verifica si es String y está vacío
-			(valor instanceof Boolean && !((Boolean) valor).booleanValue()) // Verifica si es Boolean y es falso
-			) return;
+		if (valor == null) return;
 		
 		query.append(" " + lineaSQL);
 		parametros.add(valor);
 	}
-	
 	
 	public Map<Long, Edificio> getMapEdificios(){
 		return cacheEdificios;
