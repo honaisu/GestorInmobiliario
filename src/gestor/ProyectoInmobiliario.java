@@ -34,7 +34,11 @@ public class ProyectoInmobiliario extends EntidadBase {
 	public String getNombreProyecto() {
 		return nombreProyecto;
 	}
-
+	
+	public void setNombreProyecto(String nombreProyecto) {
+        this.nombreProyecto = nombreProyecto;
+    }
+	
 	public String getFecha() {
 		return fecha.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM));
 	}
@@ -42,6 +46,10 @@ public class ProyectoInmobiliario extends EntidadBase {
 	public String getVendedor() {
 		return vendedor;
 	}
+	
+	public void setVendedor(String vendedor) {
+        this.vendedor = vendedor;
+    }
 	
 	public String getFechaOferta() {
 		return fecha.toString();

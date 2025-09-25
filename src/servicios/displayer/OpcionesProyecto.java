@@ -2,6 +2,7 @@ package servicios.displayer;
 
 public enum OpcionesProyecto {
 	REGISTRAR("Registrar un Proyecto"),
+	MODIFICAR("Modificar un Proyecto"),
 	VER("Ver Datos Seleccionado"),
 	BUSCAR("Buscar por Filtro"),
 	SALIR("Salir del Programa");
