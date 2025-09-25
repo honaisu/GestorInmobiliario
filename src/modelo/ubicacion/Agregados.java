@@ -1,7 +1,7 @@
 package modelo.ubicacion;
 
 public class Agregados {
-	private final String direccion;
+	private String direccion; //antes final
 	private boolean tienePiscina;
 	private boolean tieneEstacionamiento;
 	
@@ -40,5 +40,8 @@ public class Agregados {
 		return direccion;
 	}
 	
+	public void setDireccion(String d) {
+		this.direccion = d;
+	}
 
 }

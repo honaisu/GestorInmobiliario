@@ -5,7 +5,7 @@ import modelo.entidades.EntidadBase;
 
 public class Departamento extends EntidadBase {
 	private final String codigo;
-	private final int numeroPiso;
+	private int numeroPiso; //antes tenia final
 	private double metrosCuadrados;
 	private EstadoDepartamento estado;
 	private int habitaciones;
@@ -59,12 +59,20 @@ public class Departamento extends EntidadBase {
 		return metrosCuadrados;
 	}
 	
+	public void setMetrosCuadrados(double m) {
+		this.metrosCuadrados = m;
+	}
+	
 	public EstadoDepartamento getEstado() {
 		return estado;
 	}
 
 	public int getNumeroPiso() {
 		return numeroPiso;
+	}
+	
+	public void setNumeroPiso(int num) {
+		this.numeroPiso = num;
 	}
 
 	public int getHabitaciones() {

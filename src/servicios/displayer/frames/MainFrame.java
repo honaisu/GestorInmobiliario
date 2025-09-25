@@ -4,6 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,23 +20,35 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import gestion.ControladorGeneral;
+import gestion.GestorInmobiliarioService;
 import gestion.opciones.OpcionesProyecto;
+import modelo.ubicacion.ProyectoInmobiliario;
 
 /**
  * Frame principal utilizado para nuestro programa. Se encarga de todo el orden
  * que posee la interfaz gráfica principal presentada.
+ * 
+ * 
  */
 public class MainFrame extends JFrame {
-	private ControladorGeneral controlador;
-	private JButton verBoton;
+    private GestorInmobiliarioService gestorService;
+    
+    private DefaultTableModel defaultTableModel;
+    private JTable tablaProyectos;
+    
+    private List<Long> idProyectos = new ArrayList<>();
+    private JButton verBoton;
+    private JButton modificarBoton;
 	
-	private DefaultTableModel defaultMain;
-	private JTable tablaProyecto;
-	
-	public MainFrame() {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setResizable(false);
-		
+    public MainFrame(GestorInmobiliarioService service) {
+        super("Gestor de Inmobiliaria");
+        this.gestorService = service;
+
+        inicializarComponentes();
+        cargarProyectosEnTabla();
+    }
+    
+    public void inicializarComponentes() {
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
@@ -44,14 +61,32 @@ public class MainFrame extends JFrame {
 		mainPanel.add(proyectorPanel, BorderLayout.CENTER);
 		
 		this.add(mainPanel);
-		
-		cargarProyectosEnTabla();
-		
-		// Size automático con pack, y visibilidad a verdadero. :)
-		pack();
-		// Para colocar la ventana en "medio"
-		setLocationRelativeTo(null);
-	}
+		this.pack();
+		this.setVisible(true);
+    }
+    
+    public void cargarProyectosEnTabla() {
+        // Limpiamos la tabla por si tiene datos viejos
+        defaultTableModel.setRowCount(0);
+        
+        Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
+        
+        int numeroFila = 1;
+        // Iteramos y añadimos cada proyecto a la tabla
+        for (ProyectoInmobiliario proyecto : proyectos) {
+        	// Usado para almacenar los IDs originales
+        	idProyectos.add(proyecto.getId());
+        	
+            Object[] fila = {
+            	numeroFila,
+                proyecto.getNombreProyecto(),
+                proyecto.getVendedor(),
+                proyecto.getFechaOferta()
+            };
+            defaultTableModel.addRow(fila);
+            numeroFila++;
+        }
+    }
 	
 	private JPanel crearHeaderPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
@@ -70,8 +105,8 @@ public class MainFrame extends JFrame {
 	
 	private JPanel crearOpcionesPanel() {
 		JPanel panel = new JPanel(new GridLayout(0, 1, 10, 20));
-		panel.setPreferredSize(new Dimension(200, 250));
 		
+		panel.setPreferredSize(new Dimension(200, 250));
 		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		
 		for (OpcionesProyecto o : OpcionesProyecto.values()) {
@@ -80,41 +115,36 @@ public class MainFrame extends JFrame {
 			
 			if (OpcionesProyecto.VER.equals(o)) {
 				this.verBoton = opcionBoton;
-				this.verBoton.setEnabled(false);
 			}
-			opcionBoton.addActionListener(lambda -> {
-				accionOpcionesProyecto(o);
-			});
 			
+			opcionBoton.addActionListener(e -> accionOpcionesProyecto(o));
 			panel.add(opcionBoton);
 		}
+		
+		this.verBoton.setEnabled(false);
 		return panel;
 	}
 	
-	private JPanel mainProyectorPanel() {
+	private JPanel crearProyectorPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(500, 200));
 		
 		// Tabla con datos.
-		String[] columnas = {"ID", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
-		this.defaultMain = new DefaultTableModel(columnas, 0) {
+		String[] columnas = {"N°", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
+		this.defaultTableModel = new DefaultTableModel(columnas, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
 		        return false; // ninguna celda editable
-		    
 			};
 		};
-		this.tablaProyecto = new JTable(defaultMain);
 		
+		this.tablaProyectos = new JTable(defaultTableModel);
 		
 		// Para añadir funcionalidad al elegir una fila
-		tablaProyecto.getSelectionModel().addListSelectionListener(lambda -> {
+		tablaProyectos.getSelectionModel().addListSelectionListener(lambda -> {
 	        // Este código se ejecuta CADA VEZ que la selección cambia.
 			if (!lambda.getValueIsAdjusting()) {
-	            boolean filaSeleccionada = false;
-				if (tablaProyecto.getSelectedRow() != -1) {
-					filaSeleccionada = true;
-				}
+	            boolean filaSeleccionada = true;
 				
 	            verBoton.setEnabled(filaSeleccionada);
 			}
@@ -123,7 +153,7 @@ public class MainFrame extends JFrame {
 		
 		// Encargado de mostrar la barrita vertical.
 		JScrollPane scrollPane = new JScrollPane(
-				this.tablaProyecto,
+				this.tablaProyectos,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
@@ -131,20 +161,56 @@ public class MainFrame extends JFrame {
 		return panel;
 	}
 	
-	public void manejarOpcionesProyecto(OpcionesProyecto opcion) {
-		switch (opcion) {
-        case VER:
-            controller.mostrarDetallesProyecto();
-            break;
-        case REGISTRAR:
-            controller.mostrarVentanaRegistro();
-            break;
-        case BUSCAR:
-            controller.mostrarVentanaBusqueda();
-            break;
-        case SALIR:
-            controller.salir();
-            break;
+	private void accionOpcionesProyecto(OpcionesProyecto opcion) {
+		if (opcion == OpcionesProyecto.GUARDAR) {
+	        gestorService.getDatabaseManager().actualizarDatosDatabase();
+	        System.exit(0);
+	        return;
+	    } else if (opcion == OpcionesProyecto.SALIR) {
+	        System.exit(0);
+	        return;
+	    }
+		
+        JFrame frameSecundario = null;
+        int fila = tablaProyectos.getSelectedRow();
+
+        switch (opcion) {
+            case VER: {
+                if (fila != -1) {
+                    ProyectoInmobiliario p = gestorService.getProyectoPorId(idProyectos.get(fila));
+                    if (p != null) frameSecundario = new VerProyectoFrame(gestorService, p);
+                }
+                break;
+            }
+            case REGISTRAR:
+                frameSecundario = new RegistrarProyectoFrame(gestorService);
+                break;
+            case MODIFICAR: {
+                if (fila != -1) {
+                    ProyectoInmobiliario p = gestorService.getProyectoPorId(idProyectos.get(fila));
+                    if (p != null) frameSecundario = new ModificarProyectoFrame(gestorService, p);
+                }
+                break;
+            }
+            case BUSCAR:
+                frameSecundario = new BuscarDepartamentosFrame(gestorService);
+                break;
+			default:
+				System.out.println("No se debería acceder normalmente a este default... :)");
+				break;
+        }
+
+        // Si se creó una ventana secundaria, la mostramos y esperamos a que se cierre
+        if (frameSecundario != null) {
+            this.setVisible(false); // Ocultamos la ventana principal
+            frameSecundario.setVisible(true);
+            frameSecundario.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    cargarProyectosEnTabla();
+                    MainFrame.this.setVisible(true); // La volvemos a mostrar al cerrar la otra
+                }
+            });
+        }
     }
-	}
 }

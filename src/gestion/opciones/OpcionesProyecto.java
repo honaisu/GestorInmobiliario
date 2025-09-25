@@ -2,6 +2,7 @@ package gestion.opciones;
 
 public enum OpcionesProyecto {
 	REGISTRAR("Registrar un Proyecto"),
+	MODIFICAR("Modificar un Proyecto"),
 	VER("Ver Datos Seleccionado"),
 	BUSCAR("Buscar por Filtro"),
 	GUARDAR("Guardar y Salir"),

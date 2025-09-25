@@ -5,7 +5,7 @@ import modelo.entidades.EntidadBase;
 
 
 public class Edificio extends EntidadBase {
-	private final String NOMBRE;
+	private String NOMBRE; //tenia final
 	private LinkedList<Departamento> departamentos;
 	private Agregados informacion;
 	private ProyectoInmobiliario proyectoPadre = null;
@@ -83,6 +83,10 @@ public class Edificio extends EntidadBase {
 
 	public String getNombre() {
 		return NOMBRE;
+	}
+	
+	public void setNombre(String n) {
+		this.NOMBRE = n;
 	}
 	
 	public Agregados getInformacion() {
