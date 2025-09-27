@@ -1,28 +1,29 @@
 package gestion;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import gestion.database.DatabaseManager;
 import modelo.entidades.Comprador;
+import modelo.entidades.Usuario;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.ProyectoInmobiliario;
 
 public class GestorInmobiliarioService {
     private final DatabaseManager databaseManager;
-    private final Map<String, Comprador> compradores = new HashMap<>();
 	
 	public GestorInmobiliarioService() {
 		this.databaseManager = DatabaseManager.getDatabase();
 	}
-	
+		
 	public DatabaseManager getDatabaseManager() {
 		return databaseManager;
 	}
 
 	public Collection<ProyectoInmobiliario> getAllProyectos() {
-        return databaseManager.getMapProyectos().values();
+		return databaseManager.getMapProyectos().values();
     }
 	
 	public Collection<Edificio> getAllEdificios(){
@@ -34,11 +35,15 @@ public class GestorInmobiliarioService {
 	}
 	
 	public Comprador getCompradorPorRut(String rutComprador) {
-		if (databaseManager.verificarRut(rutComprador)) return compradores.get(rutComprador);
-		return null;
+		Comprador usuario = (Comprador) databaseManager.buscarUsuarioPorRut(rutComprador);
+		return usuario;
 	}
 	
-	public void insertComprador(Comprador nuevoComprador) {
-		compradores.put(nuevoComprador.getRut(), nuevoComprador);
+	public void guardarUsuarioEnDatabase(Usuario usuario) throws SQLException {
+		try {	
+			databaseManager.guardarUsuario(usuario);
+		} catch (SQLException e) {
+			throw e;
+		}
 	}
 }

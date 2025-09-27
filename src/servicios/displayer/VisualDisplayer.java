@@ -517,11 +517,20 @@ public class VisualDisplayer {
 	        	
 	            
 	            Comprador nuevoUsuario = new Comprador(nombre, rut, email, numero);
+	            
+	            try {
+					gestorService.guardarUsuarioEnDatabase(nuevoUsuario);
+				} catch (SQLException e1) {
+
+					e1.printStackTrace();
+				}
+	            
+	            d.setRutReserva(rut);
+	            d.setComprador(nuevoUsuario);
+	            
 	            if(comprar) {
-	            	d.setComprador(nuevoUsuario);
 	            	d.setEstado(EstadoDepartamento.VENDIDO);
 	            }else {
-	            	d.setRutReserva(rut);
 	            	d.setEstado(EstadoDepartamento.RESERVADO);
 	            }
 	            
@@ -596,6 +605,7 @@ public class VisualDisplayer {
 	        		        sadRed
 			            );
 	        	}else {
+	        		
 	        		JOptionPane.showMessageDialog(
 	        		        registrarFrame,
 	        		        "Exito",
@@ -603,6 +613,13 @@ public class VisualDisplayer {
 	        		        JOptionPane.PLAIN_MESSAGE,
 	        		        likeRed
 	        		);
+	        		
+	        		Comprador comprador = gestorService.getCompradorPorRut(rut);
+	        		if (comprador != null) {
+	        		    d.setComprador(comprador);
+	        		}
+
+	        		d.setRutReserva(rut);
 	        		
 	        		d.setEstado(EstadoDepartamento.VENDIDO);
 		            cargarDepartamentosEnTabla(e);
@@ -658,11 +675,23 @@ public class VisualDisplayer {
 		//TODO imprimir recibo como txt
 		if (estado.equals(EstadoDepartamento.VENDIDO.toString())) {
 			
-			try {
-				TextFileExporter.exportarReciboCompra(depa.getComprador(), depa);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}			
+			//JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+			int result = JOptionPane.showConfirmDialog(
+		            visualFrame,
+		            "¿Desea recibo?", 
+		            "Compra Realizada",
+		            JOptionPane.YES_NO_OPTION,
+		            JOptionPane.PLAIN_MESSAGE);
+			
+			if (result == JOptionPane.YES_OPTION) {
+				try {
+					TextFileExporter.exportarReciboCompra(depa.getComprador(), depa);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}	
+			}
+			
+					
 		}
 	}
 	
@@ -1239,6 +1268,7 @@ public class VisualDisplayer {
 	                    null);
 
 	                edificioSel.agregarDepartamento(nuevoDepartemento);
+	                nuevoDepartemento.setEdificioPadre(edificioSel);
 	                // ======================
 	                // cambio: persistencia inmediata si el edificio ya existe en DB
 	                // ======================

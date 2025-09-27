@@ -12,6 +12,8 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 import gestion.FiltroBusqueda;
+import modelo.entidades.Comprador;
+import modelo.entidades.Usuario;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
@@ -37,6 +39,7 @@ public class DatabaseManager {
     private final List<Long> departamentosAEliminar = new ArrayList<>();
     private final List<Long> proyectosAModificar = new ArrayList<>();
     private final Set<String> rutsExistentes = new HashSet<>();
+    private final Map<String, Usuario> cacheUsuarios = new HashMap<>(); 
     
     private Connection connection;
 
@@ -102,10 +105,34 @@ public class DatabaseManager {
 	 */
 	public void cargarDatos() throws SQLException {
 		cacheProyectos.clear();
+	    cacheEdificios.clear();
+	    cacheUsuarios.clear();
 		
+		rellenarDatosUsuarios();
 		rellenarDatosProyecto();
 		rellenarDatosEdificios();
 		rellenarDatosDepartamentos();
+	}
+	
+	public void rellenarDatosUsuarios() throws SQLException {
+	    String query = "SELECT * FROM Usuario";
+	    
+	    try (Statement statement = connection.createStatement();
+	         ResultSet resultados = statement.executeQuery(query);) {
+	        
+	        while (resultados.next()) {
+	            String rut = resultados.getString("rut");
+	            String nombre = resultados.getString("nombre");
+	            String email = resultados.getString("email");
+	            String telefono = resultados.getString("telefono");
+	            
+	            Usuario usuario = new Comprador(rut, nombre, email, telefono); 
+	            
+	            cacheUsuarios.put(rut, usuario);
+	        }
+	    } catch (SQLException e) {
+	        throw new SQLException("No se pudieron rellenar los datos de los usuarios.");
+	    }
 	}
 	
 	/**
@@ -380,6 +407,34 @@ public class DatabaseManager {
 	    if (!proyectosAEliminar.contains(idProyecto)) {
 	        proyectosAEliminar.add(idProyecto);
 	    }
+	}
+	
+	public void guardarUsuario(Usuario usuario) throws SQLException {
+	    if (cacheUsuarios.containsKey(usuario.getRut())) {
+	        String query = "UPDATE Usuario SET nombre = ?, email = ?, telefono = ? WHERE rut = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            stmt.setString(1, usuario.getNombre());
+	            stmt.setString(2, usuario.getEmail());
+	            stmt.setString(3, usuario.getTelefono());
+	            stmt.setString(4, usuario.getRut());
+	            stmt.executeUpdate();
+	        } catch (SQLException e) {
+	        	throw new SQLException("No se pudo actualizar los datos del usuario " + usuario.getRut());
+	        }
+	    } else {
+	        String query = "INSERT INTO Usuario(rut, nombre, email, telefono) VALUES(?, ?, ?, ?)";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            stmt.setString(1, usuario.getRut());
+	            stmt.setString(2, usuario.getNombre());
+	            stmt.setString(3, usuario.getEmail());
+	            stmt.setString(4, usuario.getTelefono());
+	            stmt.executeUpdate();
+	        } catch (SQLException e) {
+	        	throw new SQLException("No se pudo insertar el usuario " + usuario.getRut());
+	        }
+	    }
+	    
+	    cacheUsuarios.put(usuario.getRut(), usuario);
 	}
 	
 	private void procesarEliminaciones() throws SQLException {
@@ -745,9 +800,8 @@ public class DatabaseManager {
         }
     }
 
-	public boolean verificarRut(String rut) {
-		if (rutsExistentes.contains(rut)) return true;
-		return false;
+	public Usuario buscarUsuarioPorRut(String rut) {
+		return cacheUsuarios.get(rut);
 	}
 }
 

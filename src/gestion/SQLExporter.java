@@ -28,8 +28,8 @@ public class SQLExporter {
         String query = "SELECT * FROM " + tableName;
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(query)) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query)) {
         	
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();

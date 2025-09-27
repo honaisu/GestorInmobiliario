@@ -32,15 +32,8 @@ public abstract class Usuario {
 	public String getEmail() { return email; }
 	public String getTelefono() { return telefono; }
 
-	public boolean setEmail(String email) {
-		if (email == null || email.isEmpty() || !email.contains("@")) return false;
-		
-		String dominio = email.substring(email.lastIndexOf("@"));
-		if (dominio.equals("@email.com")) {
-			this.email = email;
-			return true;
-		}
-		return false;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public boolean setTelefono(String telefono) {

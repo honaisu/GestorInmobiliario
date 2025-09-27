@@ -11,6 +11,11 @@ import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.ProyectoInmobiliario;
 
+
+/**
+ * Clase encargada de poder exportar los datos de un comprador asociado (y un departamento)
+ * en formato .txt; usado para poder generar recibos de compra al reservar / comprar.
+ */
 public class TextFileExporter {
 	private TextFileExporter() { }
 	
@@ -27,7 +32,7 @@ public class TextFileExporter {
         // Formateador para la fecha y hora, asegurando un nombre de archivo único.
         DateTimeFormatter fileFormatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         String timestamp = LocalDateTime.now().format(fileFormatter);
-        String fileName = String.format("recibo_%s_%s.txt", comprador.getRut(), timestamp);
+        String fileName = String.format("./data/recibos/recibo_%s_%s.txt", comprador.getRut(), timestamp);
 
         // Usamos StringBuilder para construir el contenido del recibo de forma eficiente.
         StringBuilder contenido = new StringBuilder();
