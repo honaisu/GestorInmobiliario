@@ -24,8 +24,8 @@ public abstract class Usuario {
 		setTelefono(telefono);
 	}
 	
-	public String getRUT() { return RUT; }
-	public String getNOMBRE() { return NOMBRE; }
+	public String getRut() { return RUT; }
+	public String getNombre() { return NOMBRE; }
 	public String getEmail() { return email; }
 	public String getTelefono() { return telefono; }
 
@@ -45,8 +45,4 @@ public abstract class Usuario {
 		this.telefono = telefono;
 		return true;
 	}
-	
-	public String getNombre() {
-        return this.NOMBRE;
-    }
 }

@@ -4,8 +4,10 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
@@ -35,6 +37,7 @@ public class DatabaseManager {
     private final List<Long> edificiosAEliminar = new ArrayList<>();
     private final List<Long> departamentosAEliminar = new ArrayList<>();
     private final List<Long> proyectosAModificar = new ArrayList<>();
+    private final Set<String> rutsExistentes = new HashSet<>();
     
     private Connection connection;
 
@@ -104,6 +107,10 @@ public class DatabaseManager {
 		rellenarDatosProyecto();
 		rellenarDatosEdificios();
 		rellenarDatosDepartamentos();
+	}
+	
+	public void rellenarRuts() throws SQLException {
+		
 	}
 	
 	/**
@@ -189,6 +196,9 @@ public class DatabaseManager {
 				double precioActual = resultados.getDouble("precio_actual");
 				// para su papá
 				long edificioId = resultados.getLong("edificio_id");
+				
+				String rut = resultados.getString("rut_usuario_asociado");
+				if (rut != null) rutsExistentes.add(rut);
 				
 				// Lo siento pero tiene muchos datos :c
 				Departamento departamento = new Departamento(
@@ -372,17 +382,41 @@ public class DatabaseManager {
 	}
 	
 	private void procesarEliminaciones() throws SQLException {
-	    if (proyectosAEliminar.isEmpty()) return;
-
-	    String deleteQuery = "DELETE FROM Proyectos WHERE id = ?";
-	    try (PreparedStatement statement = connection.prepareStatement(deleteQuery)) {
-	        for (Long idProyecto : proyectosAEliminar) {
-	            statement.setLong(1, idProyecto);
-	            statement.addBatch();
+	    if (!departamentosAEliminar.isEmpty()) {
+	        String query = "DELETE FROM Departamentos WHERE id = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            for (Long id : departamentosAEliminar) {
+	                stmt.setLong(1, id);
+	                stmt.addBatch();
+	            }
+	            stmt.executeBatch();
+	            departamentosAEliminar.clear();
 	        }
-	        statement.executeBatch(); 
 	    }
-	    proyectosAEliminar.clear();
+
+	    if (!edificiosAEliminar.isEmpty()) {
+	        String query = "DELETE FROM Edificios WHERE id = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            for (Long id : edificiosAEliminar) {
+	                stmt.setLong(1, id);
+	                stmt.addBatch();
+	            }
+	            stmt.executeBatch();
+	            edificiosAEliminar.clear();
+	        }
+	    }
+
+	    if (!proyectosAEliminar.isEmpty()) {
+	        String query = "DELETE FROM Proyectos WHERE id = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            for (Long id : proyectosAEliminar) {
+	                stmt.setLong(1, id);
+	                stmt.addBatch();
+	            }
+	            stmt.executeBatch();
+	            proyectosAEliminar.clear();
+	        }
+	    }
 	}
 	
 	public void modificarProyecto(Long idProyecto, ProyectoInmobiliario proyectoModificado) {
@@ -673,5 +707,30 @@ public class DatabaseManager {
     public Connection getConnection() {
         return this.connection;
     }
+    
+    /**
+     * Marca un edificio para ser eliminado de la base de datos al guardar.
+     * @param edificioId El ID del edificio a eliminar.
+     */
+    public void marcarEdificioParaEliminar(Long edificioId) {
+        if (edificioId > 0 && !edificiosAEliminar.contains(edificioId)) {
+            edificiosAEliminar.add(edificioId);
+        }
+    }
+
+    /**
+     * Marca un departamento para ser eliminado de la base de datos al guardar.
+     * @param departamentoId El ID del departamento a eliminar.
+     */
+    public void marcarDepartamentoParaEliminar(Long departamentoId) {
+        if (departamentoId > 0 && !departamentosAEliminar.contains(departamentoId)) {
+            departamentosAEliminar.add(departamentoId);
+        }
+    }
+
+	public boolean verificarRut(String rut) {
+		if (rutsExistentes.contains(rut)) return true;
+		return false;
+	}
 }
 
