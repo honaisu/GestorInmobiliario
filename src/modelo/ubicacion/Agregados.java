@@ -1,10 +1,32 @@
 package modelo.ubicacion;
-
+/**
+ * Representa los agregados o características adicionales asociadas a un Edificio,
+ * como la existencia de piscina o estacionamiento, junto con su dirección.
+ * <p>
+ * Esta clase puede ser utilizada para complementar la información de una vivienda
+ * o inmueble dentro de un sistema inmobiliario.
+ * </p>
+ * 
+ * @author 🄯 Los Bien Corporation
+ */
 public class Agregados {
-	private String direccion; //antes final
+	
+	//Direccion del Edificio
+	private String direccion;
+	
+	//Indica si el Edificio tiene piscina
 	private boolean tienePiscina;
+	
+	//Indica si el Edificio tiene estacionamiento
 	private boolean tieneEstacionamiento;
 	
+	/**
+	 * Crea un objeto {@code Agregados} con todos sus atributos especificados.
+	 * 
+	 * @param direccion
+	 * @param tienePiscina
+	 * @param tieneEstacionamiento
+	 */
 	public Agregados(String direccion, boolean tienePiscina, boolean tieneEstacionamiento) {
 		this.direccion = direccion;
 		this.tienePiscina = tienePiscina;
