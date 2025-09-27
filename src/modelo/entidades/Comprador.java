@@ -1,20 +1,44 @@
 package modelo.entidades;
 
-import java.util.LinkedList;
-import modelo.ubicacion.Departamento;
-
 /**
- * Clase que nos permite poder definir un "comprador" dentro del sistema.
- * Definimos un Comprador como una clase que puede ser capaz de comprar propiedades
- * y de ver su propia lista de compra.
+ * Usuario dentro de nuestra plataforma.
+ * Cada usuario puede ser un COMPRADOR y/o un VENDEDOR.
+ * A su vez, posee todos los atributos de una Entidad (Datos Personales y Bancarios).
  */
-public class Comprador extends Usuario {
-	public Comprador() {
+public abstract class Usuario {
+	private String RUT;
+	private String NOMBRE; // Primer Nombre(?) o Nombre y Apellido
+	private String email = "";
+	private String telefono = "000000000";
+	
+	public Usuario() {
 	}
 	
-	public Comprador(String RUT, String NOMBRE, String email, String numero) {
-		super(RUT, NOMBRE, email, numero);
-		// TODO Auto-generated constructor stub
+	public Usuario(String RUT, String NOMBRE, String email) {
+		this.RUT = RUT;
+		this.NOMBRE = NOMBRE;
+		setEmail(email);
 	}
 	
+	public Usuario(String RUT, String NOMBRE, String email, String telefono) {
+		this.RUT = RUT;
+		this.NOMBRE = NOMBRE;
+		setEmail(email);
+		setTelefono(telefono);
+	}
+	
+	public String getRut() { return RUT; }
+	public String getNombre() { return NOMBRE; }
+	public String getEmail() { return email; }
+	public String getTelefono() { return telefono; }
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public boolean setTelefono(String telefono) {
+		if (telefono.length() > 9 || telefono.contains("+")) return false;
+		this.telefono = telefono;
+		return true;
+	}
 }
