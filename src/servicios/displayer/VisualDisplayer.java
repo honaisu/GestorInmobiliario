@@ -484,7 +484,7 @@ public class VisualDisplayer {
 	            d.setEstado(EstadoDepartamento.VENDIDO);
 	            cargarDepartamentosEnTabla(e);
 	            
-	            gestorService.getDatabaseManager().agregarNuevoProyecto(e.getProyectoPadre());
+	            gestorService.getDatabaseManager().marcarProyectoParaModificar(e.getProyectoPadre().getId());
 	            
 	        } else {
 	            JOptionPane.showMessageDialog(
@@ -529,7 +529,7 @@ public class VisualDisplayer {
 	        }
 	        
 	        //TODO ACTUALIZAR EL RUT DE LA RESERVA 
-	        d.setRutReserva("1234");
+	        //d.setRutReserva("1234");
 	        
 	        if (!rut.isEmpty()) {
 	            
@@ -554,7 +554,7 @@ public class VisualDisplayer {
 	        		d.setEstado(EstadoDepartamento.VENDIDO);
 		            cargarDepartamentosEnTabla(e);
 		            
-		            gestorService.getDatabaseManager().agregarNuevoProyecto(e.getProyectoPadre());
+		            gestorService.getDatabaseManager().marcarProyectoParaModificar(e.getProyectoPadre().getId());
 	        	}
 	            
 	            
@@ -1839,7 +1839,7 @@ public class VisualDisplayer {
 		tablaDepartamento.getColumnModel().getColumn(3).setPreferredWidth(70); //HABITACIONES
 		tablaDepartamento.getColumnModel().getColumn(4).setPreferredWidth(30); //BAÑOS
 		tablaDepartamento.getColumnModel().getColumn(5).setPreferredWidth(70); //ESTADO
-		tablaDepartamento.getColumnModel().getColumn(0).setPreferredWidth(60); //PRECIO
+		tablaDepartamento.getColumnModel().getColumn(6).setPreferredWidth(60); //PRECIO
 	}
 	
 	//Color gris en columna en tabla
