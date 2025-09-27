@@ -1,4 +1,4 @@
-package modelo.datos;
+package modelo.entidades;
 
 public abstract class EntidadBase {
 	protected Long id = null;

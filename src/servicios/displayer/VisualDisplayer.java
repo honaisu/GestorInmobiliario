@@ -41,10 +41,13 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-import gestor.DatabaseManager;
-import gestor.FiltroBusqueda;
-import gestor.GestorInmobiliarioService;
-import gestor.ProyectoInmobiliario;
+import gestion.database.DatabaseManager;
+import gestion.opciones.OpcionesProyecto;
+import gestion.opciones.OpcionesRegistrar;
+import gestion.opciones.OpcionesVer;
+import gestion.FiltroBusqueda;
+import gestion.GestorInmobiliarioService;
+import modelo.ubicacion.ProyectoInmobiliario;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
@@ -1071,14 +1074,14 @@ public class VisualDisplayer {
 	                    id, codigo, piso, metros, habitaciones, banos, estadoBase, precio, precio
 	                );
 
+	                edificioSel.agregarDepartamento(nuevoDepartemento);
 	                // ======================
 	                // cambio: persistencia inmediata si el edificio ya existe en DB
 	                // ======================
 	                try {
-	                    DatabaseManager db = DatabaseManager.getDatabase();
-	                    if (edificioSel.getId() > 0) { // edificio ya en DB
-	                        // Insertar directamente en la DB
-	                        db.insertarDepartamento(nuevoDepartemento, edificioSel.getId()); // cambio
+	                    DatabaseManager database = gestorService.getDatabaseManager();
+	                    if (edificioSel.getId() > 0) { 
+	                        database.agregarNuevoEdificio(edificioSel); // cambio
 	                        // insertarDepartamento ya setea el id real y lo agrega al edificio en cache // cambio
 	                    } else {
 	                        // edificio todavía no está en DB → solo en memoria
@@ -1964,30 +1967,23 @@ public class VisualDisplayer {
 	        return;
 	    }
 
-	    // 🔹 Actualizar objeto en memoria
+	    // Actualizar objeto en memoria
 	    proyecto.setNombreProyecto(nuevoNombre);
 	    proyecto.setVendedor(nuevoVendedor);
+	    
+	    
 	    proyecto.getEdificios().clear();
 	    proyecto.getEdificios().addAll(edificiosPorProyecto);
 
-	    try {
-	        gestorService.getDatabaseManager().sincronizarProyecto(
-	            proyecto,
-	            edificiosPorProyecto,
-	            edificiosAEliminar,
-	            departamentosAEliminar
-	        );
-	    } catch (SQLException ex) {
-	        JOptionPane.showMessageDialog(modificarFrame, "Error al guardar en la base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-	        return;
-	    }
-
-	    // 🔹 Refrescar tabla
+	    //gestorService.getDatabaseManager().agregarNuevoProyecto(proyecto);
+	    //gestorService.getDatabaseManager().modificarProyecto(proyecto.getId(), proyecto);
+	    gestorService.getDatabaseManager().marcarProyectoParaModificar(proyecto.getId());
+	    // Refrescar tabla
 	    cargarProyectosEnTabla();
 
 	    JOptionPane.showMessageDialog(modificarFrame, "Proyecto actualizado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 
-	    // 🔹 Limpiar las listas de eliminados
+	    // Limpiar las listas de eliminados
 	    edificiosAEliminar.clear();
 	    departamentosAEliminar.clear();
 

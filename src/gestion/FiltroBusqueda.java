@@ -1,4 +1,4 @@
-package gestor;
+package gestion;
 
 
 import modelo.ubicacion.EstadoDepartamento;
@@ -16,8 +16,8 @@ public class FiltroBusqueda {
 	private Integer habitacionesMin;
 	private Integer banosMin;
 	private EstadoDepartamento estado;
-	private Boolean conPiscina;
-	private Boolean conEstacionamiento;
+	private boolean conPiscina;
+	private boolean conEstacionamiento;
 	private String direccion;
 	
 	public FiltroBusqueda() {
@@ -25,7 +25,7 @@ public class FiltroBusqueda {
 	}
 	
 	public FiltroBusqueda(Double precioMin, Double precioMax, Integer habitacionesMin, Integer banosMin,
-			EstadoDepartamento estado, Boolean conPiscina, Boolean conEstacionamiento, String direccion) {
+			EstadoDepartamento estado, boolean conPiscina, boolean conEstacionamiento, String direccion) {
 		this.precioMin = precioMin;
 		this.precioMax = precioMax;
 		this.habitacionesMin = habitacionesMin;
@@ -51,10 +51,10 @@ public class FiltroBusqueda {
 	public EstadoDepartamento getEstado() {
 		return estado;
 	}
-	public Boolean getConPiscina() {
+	public boolean getConPiscina() {
 		return conPiscina;
 	}
-	public Boolean getConEstacionamiento() {
+	public boolean getConEstacionamiento() {
 		return conEstacionamiento;
 	}
 	public String getDireccion() {

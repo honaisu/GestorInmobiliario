@@ -1,14 +1,14 @@
 package main;
 
-import gestor.DatabaseManager;
-import gestor.GestorInmobiliarioService;
+import gestion.GestorInmobiliarioService;
+import gestion.database.DatabaseManager;
+import servicios.displayer.VisualDisplayer;
+import servicios.displayer.VisualDisplayerV2;
 
 /*
  * Cada paquete de abajo se puede reemplazar a futuro.
  * Pues solo son utilizados para el testing (usuario, proyecto) de la app. :D
  */
-
-import servicios.displayer.VisualDisplayer;
 
 /**
  * @author honai
@@ -20,9 +20,10 @@ public class Main {
 		
 		GestorInmobiliarioService gestor = new GestorInmobiliarioService();
 		
-		//database.probar();
 		
+		//new VisualDisplayerV2(gestor).initialize();
 		new VisualDisplayer(gestor).initialize();
+		//database.probar();
 		//database.actualizarDatosDatabase();
 	}
 }

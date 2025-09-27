@@ -1,4 +1,4 @@
-package gestor;
+package gestion.database;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -9,9 +9,11 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
+import gestion.FiltroBusqueda;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
+import modelo.ubicacion.ProyectoInmobiliario;
 
 /**
  * Clase encargada del manejo de todo lo referente a la database implementada con SQLite.
@@ -27,8 +29,10 @@ import modelo.ubicacion.EstadoDepartamento;
 public class DatabaseManager {
     private static final DatabaseManager database = new DatabaseManager();
     
-    private final HashMap<Long, ProyectoInmobiliario> cacheProyectos = new HashMap<>();
-    private final HashMap<Long, Edificio> cacheEdificios = new HashMap<>();
+    private final Map<Long, ProyectoInmobiliario> cacheProyectos = new HashMap<>();
+    private final Map<Long, Edificio> cacheEdificios = new HashMap<>();
+    private final List<Long> proyectosAEliminar = new ArrayList<>();
+    private final List<Long> proyectosAModificar = new ArrayList<>();
     
     private Connection connection;
 
@@ -242,13 +246,14 @@ public class DatabaseManager {
 							"AND d.banos >= ?",
 							constructerQuery, parametros);
 		
-		agregarFiltroValido(filtro.getConEstacionamiento(), 
-							"AND e.tiene_piscina = 1", 
-							constructerQuery, parametros);
+		if (filtro.getConEstacionamiento()) {
+			constructerQuery.append("AND e.tiene_piscina = 1 ");
+		}
 		
-		agregarFiltroValido(filtro.getConPiscina(), 
-							"AND e.tiene_estacionamiento = 1", 
-							constructerQuery, parametros);
+		if (filtro.getConPiscina()) {
+			constructerQuery.append("AND e.tiene_estacionamiento = 1 ");
+		}
+		
 		
 		if (filtro.getEstado() != null) {		
 			agregarFiltroValido(filtro.getEstado().name(),	
@@ -302,16 +307,13 @@ public class DatabaseManager {
 	 */
 	public void agregarFiltroValido(Object valor, String lineaSQL, 
 			StringBuilder query, List<Object> parametros) {
-		if (valor == null || //Verifica null
-			(valor instanceof String && ((String) valor).isEmpty()) || // Verifica si es String y está vacío
-			(valor instanceof Boolean && !((Boolean) valor).booleanValue()) // Verifica si es Boolean y es falso
-			) return;
+		if (valor == null) return;
 		
 		query.append(" " + lineaSQL);
 		parametros.add(valor);
 	}
 	
-	public HashMap<Long, Edificio> getMapEdificios(){
+	public Map<Long, Edificio> getMapEdificios(){
 		return cacheEdificios;
 	}
 	
@@ -329,12 +331,55 @@ public class DatabaseManager {
 		cacheProyectos.put(proyecto.getId(), proyecto);
 	}
 	
-	/**
-	 * Modificar proyecto
-	 */
-	public void modificarProyecto(long idProyecto) {
+	public void agregarNuevoEdificio(Edificio edificio) {
+		if (edificio.getId() != null) return;
 		
+		long idTemporal = -System.currentTimeMillis();
+		edificio.setId(idTemporal);
+		cacheEdificios.put(edificio.getId(), edificio);
 	}
+	
+	/**
+	 * Marca un proyecto existente para que sea actualizado en la base de datos.
+	 * @param idProyecto El ID del proyecto que fue modificado.
+	 */
+	public void marcarProyectoParaModificar(Long idProyecto) {
+	    if (idProyecto > 0 && !proyectosAModificar.contains(idProyecto)) {
+	        proyectosAModificar.add(idProyecto);
+	    }
+	}
+	
+	
+	public ProyectoInmobiliario eliminarProyecto(Long idProyecto) {
+		if (idProyecto > 0) {
+			proyectosAEliminar.add(idProyecto);
+		}
+		
+		return cacheProyectos.remove(idProyecto);
+	}
+	
+	private void procesarEliminaciones() throws SQLException {
+	    if (proyectosAEliminar.isEmpty()) return;
+
+	    String deleteQuery = "DELETE FROM Proyectos WHERE id = ?";
+	    try (PreparedStatement statement = connection.prepareStatement(deleteQuery)) {
+	        for (Long idEliminar : proyectosAEliminar) {
+	            statement.setLong(1, idEliminar);
+	            statement.addBatch();
+	        }
+	        statement.executeBatch(); // Ejecuta todas las eliminaciones de una
+	    }
+	    proyectosAEliminar.clear();
+	}
+	
+	public void modificarProyecto(Long idProyecto, ProyectoInmobiliario proyectoModificado) {
+		cacheProyectos.replace(idProyecto, proyectoModificado);
+	}
+	
+	public void modificarEdificio(Long idEdificio, Edificio edificioModificado) {
+		cacheEdificios.replace(idEdificio, edificioModificado);
+	}
+
 	
 	/**
 	 * Actualiza la base de datos con los nuevos proyectos, edificios y departamentos
@@ -346,13 +391,17 @@ public class DatabaseManager {
 		try (PreparedStatement statement = connection.prepareStatement(proyectosQuery, Statement.RETURN_GENERATED_KEYS)) {
 			connection.setAutoCommit(false);
 			
+			procesarEliminaciones();
 			
-			//gpt
+			procesarModificaciones();
+			
 			List<Long> idsTemporales = new ArrayList<>();
 			for (Long id : cacheProyectos.keySet()) {
 			    if (id < 0) idsTemporales.add(id);
 			}
 			
+			// Si la lista está vacía, significa que no hay datos nuevos que agregar :).
+			if (idsTemporales.isEmpty()) return;
 			
 			for (Long idTemporal : idsTemporales) {
 				
@@ -367,6 +416,8 @@ public class DatabaseManager {
                 if (affectedRows == 0) {
                     throw new SQLException("La inserción falló, no se afectaron filas.");
                 }
+                
+                
                 
                 try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -398,6 +449,40 @@ public class DatabaseManager {
 		}
 	}
 	
+	private void procesarModificaciones() throws SQLException {
+	    if (proyectosAModificar.isEmpty()) return;
+
+	    for (Long idProyecto : proyectosAModificar) {
+	        ProyectoInmobiliario proyecto = cacheProyectos.get(idProyecto);
+	        if (proyecto == null) continue;
+
+	        actualizarProyecto(proyecto);
+
+	        for (Edificio edificio : proyecto.getEdificios()) {
+	            if (edificio.getId() < 0) {
+	                // Es un edificio nuevo, hay que insertarlo junto con sus departamentos
+	                insertarEdificioYDepartamentos(edificio, proyecto.getId());
+	            } else {
+	                // Es un edificio existente, actualizarlo
+	                actualizarEdificio(edificio);
+	                
+	                // Sincronizar sus departamentos
+	                for (Departamento depto : edificio.getDepartamentos()) {
+	                    if (depto.getId() < 0) {
+	                        // Departamento nuevo
+	                        insertarDepartamento(depto, edificio.getId());
+	                    } else {
+	                        // Departamento existente
+	                        actualizarDepartamento(depto);
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    // Limpiar la lista una vez procesada
+	    proyectosAModificar.clear();
+	}
+
 	/**
 	 * Inserta los edificios de un proyecto en la base de datos.
 	 * 
@@ -433,6 +518,33 @@ public class DatabaseManager {
 	                    cacheEdificios.put(nuevoIdEdificio, edificio);
 	                } else {
 	                    throw new SQLException("No se pudo obtener el ID para el edificio: " + edificio.getNombre());
+	                }
+	            }
+	        }
+	    }
+	}
+	
+	private void insertarEdificioYDepartamentos(Edificio edificio, long proyectoId) throws SQLException {
+	    String edificioQuery = "INSERT INTO Edificios(nombre_asociado, direccion, tiene_piscina, tiene_estacionamiento, proyecto_id) VALUES(?, ?, ?, ?, ?)";
+	    try (PreparedStatement stmt = connection.prepareStatement(edificioQuery, Statement.RETURN_GENERATED_KEYS)) {
+	        stmt.setString(1, edificio.getNombre());
+	        stmt.setString(2, edificio.getInformacion().getDireccion());
+	        stmt.setBoolean(3, edificio.getInformacion().isTienePiscina());
+	        stmt.setBoolean(4, edificio.getInformacion().isTieneEstacionamiento());
+	        stmt.setLong(5, proyectoId);
+	        stmt.executeUpdate();
+
+	        try (ResultSet keys = stmt.getGeneratedKeys()) {
+	            if (keys.next()) {
+	                long nuevoIdEdificio = keys.getLong(1);
+	                // Actualizamos el ID temporal por el real
+	                cacheEdificios.remove(edificio.getId());
+	                edificio.setId(nuevoIdEdificio);
+	                cacheEdificios.put(nuevoIdEdificio, edificio);
+
+	                // Insertar los departamentos asociados
+	                for (Departamento depto : edificio.getDepartamentos()) {
+	                    insertarDepartamento(depto, nuevoIdEdificio);
 	                }
 	            }
 	        }
@@ -481,32 +593,27 @@ public class DatabaseManager {
 	//Ni idea si funcione pero mucho ojo con esto, #miedo
 	public void actualizarProyecto(ProyectoInmobiliario proyecto) throws SQLException {
 	    String query = "UPDATE Proyectos SET nombre_proyecto = ?, vendedor_asociado = ?, fecha_oferta = ? WHERE id = ?";
-	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-	        stmt.setString(1, proyecto.getNombreProyecto());
-	        // Fecha: convertir a String (funciona tanto si es String como LocalDate)
-	        stmt.setString(2, proyecto.getVendedor());
-	        stmt.setString(3, proyecto.getFechaOferta() == null ? java.time.LocalDate.now().toString() : proyecto.getFechaOferta().toString());
-	        stmt.setLong(4, proyecto.getId());
-	        stmt.executeUpdate();
-	    }
+	    PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setString(1, proyecto.getNombreProyecto());
+        // Fecha: convertir a String (funciona tanto si es String como LocalDate)
+        stmt.setString(2, proyecto.getVendedor());
+        stmt.setString(3, proyecto.getFechaOferta());
+        stmt.setLong(4, proyecto.getId());
+        stmt.executeUpdate();
 	}
-	
 	
 	public void actualizarEdificio(Edificio edificio) throws SQLException {
 	    String query = "UPDATE Edificios SET nombre_asociado = ?, direccion = ?, tiene_piscina = ?, tiene_estacionamiento = ? WHERE id = ?";
-	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-	        stmt.setString(1, edificio.getNombre());
-	        stmt.setString(2, edificio.getInformacion().getDireccion());
-	        stmt.setBoolean(3, edificio.getInformacion().isTienePiscina());
-	        stmt.setBoolean(4, edificio.getInformacion().isTieneEstacionamiento());
-	        stmt.setLong(5, edificio.getId());
-	        stmt.executeUpdate();
+	    PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setString(1, edificio.getNombre());
+        stmt.setString(2, edificio.getInformacion().getDireccion());
+        stmt.setBoolean(3, edificio.getInformacion().isTienePiscina());
+        stmt.setBoolean(4, edificio.getInformacion().isTieneEstacionamiento());
+        stmt.setLong(5, edificio.getId());
+        stmt.executeUpdate();
 
-	        // actualizar cache si existe
-	        cacheEdificios.put(edificio.getId(), edificio);
-	    }
+        cacheEdificios.put(edificio.getId(), edificio);
 	}
-	
 	
 	public void actualizarDepartamento(Departamento depto) throws SQLException {
 	    String query = "UPDATE Departamentos SET codigo = ?, numero_piso = ?, metros_cuadrados = ?, habitaciones = ?, banos = ?, estado = ?, precio_base = ?, precio_actual = ? WHERE id = ?";
@@ -524,276 +631,27 @@ public class DatabaseManager {
 	    }
 	}
 	
-	public void insertarEdificio(Edificio edificio, long proyectoId) throws SQLException {
-	    String edificioQuery = "INSERT INTO Edificios(nombre_asociado, direccion, tiene_piscina, tiene_estacionamiento, proyecto_id) VALUES(?, ?, ?, ?, ?)";
-	    try (PreparedStatement stmt = connection.prepareStatement(edificioQuery, Statement.RETURN_GENERATED_KEYS)) {
-	        stmt.setString(1, edificio.getNombre());
-	        stmt.setString(2, edificio.getInformacion().getDireccion());
-	        stmt.setBoolean(3, edificio.getInformacion().isTienePiscina());
-	        stmt.setBoolean(4, edificio.getInformacion().isTieneEstacionamiento());
-	        stmt.setLong(5, proyectoId);
-	        int affected = stmt.executeUpdate();
-	        if (affected == 0) throw new SQLException("No se insertó edificio.");
-	        try (ResultSet keys = stmt.getGeneratedKeys()) {
-	            if (keys.next()) {
-	                long nuevoIdEdificio = keys.getLong(1);
-	                edificio.setId(nuevoIdEdificio);
-	                edificio.setProyectoPadre(cacheProyectos.get(proyectoId));
-	                cacheEdificios.put(nuevoIdEdificio, edificio);
-	                // insertar departamentos asociados (si los trae)
-	                insertarDepartamentos(edificio, nuevoIdEdificio);
-	            } else {
-	                throw new SQLException("No se obtuvo id del edificio insertado.");
-	            }
-	        }
-	    }
-	}
 	
-	
-	////--------------
-	//// EXPERIMENTO SALE MAL
-	////--------------
-	
-	//ojo este
 	public void insertarDepartamento(Departamento depto, long idEdificio) throws SQLException {
 	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	    try (PreparedStatement stmt = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
-	        stmt.setString(1, depto.getCodigo());
-	        stmt.setInt(2, depto.getNumeroPiso());
-	        stmt.setDouble(3, depto.getMetrosCuadrados());
-	        stmt.setInt(4, depto.getHabitaciones());
-	        stmt.setInt(5, depto.getBanos());
-	        stmt.setString(6, depto.getEstado().name());
-	        stmt.setDouble(7, depto.getGestorPrecios().getPrecioBase());
-	        stmt.setDouble(8, depto.getGestorPrecios().getPrecioActual());
-	        stmt.setLong(9, idEdificio);
-	        int affected = stmt.executeUpdate();
-	        if (affected == 0) throw new SQLException("No se insertó departamento.");
-	        try (ResultSet keys = stmt.getGeneratedKeys()) {
-	            if (keys.next()) {
-	                depto.setId(keys.getLong(1));
-	                // actualizar referencia en cache
-	                Edificio ed = cacheEdificios.get(idEdificio);
-	                if (ed != null) {
-	                    depto.setEdificioPadre(ed);
-	                    ed.agregarDepartamento(depto);
-	                }
-	            }
-	        }
-	    }
-	}
-
-	public void eliminarDepartamento(long departamentoId) throws SQLException {
-	    // Primero obtener edificio padre para limpiar cache
-	    // Buscar en cacheEdificios: recorrer y eliminar del objeto
-	    for (Edificio e : cacheEdificios.values()) {
-	        e.getDepartamentos().removeIf(d -> {
-	            if (d.getId() != null && d.getId() == departamentoId) {
-	                return true;
-	            }
-	            return false;
-	        });
-	    }
-	    String query = "DELETE FROM Departamentos WHERE id = ?";
-	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-	        stmt.setLong(1, departamentoId);
-	        stmt.executeUpdate();
-	    }
-	}
-	
-	public void eliminarEdificio(long edificioId) throws SQLException {
-	    // Borrar departamentos del edificio (por seguridad) y limpiar cache
-	    String delDeptos = "DELETE FROM Departamentos WHERE edificio_id = ?";
-	    try (PreparedStatement stmt = connection.prepareStatement(delDeptos)) {
-	        stmt.setLong(1, edificioId);
-	        stmt.executeUpdate();
-	    }
-	    // Borrar el edificio
-	    String delEdi = "DELETE FROM Edificios WHERE id = ?";
-	    try (PreparedStatement stmt = connection.prepareStatement(delEdi)) {
-	        stmt.setLong(1, edificioId);
-	        stmt.executeUpdate();
-	    }
-	    // Eliminar de cacheEdificios y de la lista del proyecto padre
-	    cacheEdificios.remove(edificioId);
-	    for (ProyectoInmobiliario p : cacheProyectos.values()) {
-	        p.getEdificios().removeIf(e -> e.getId() != null && e.getId() == edificioId);
-	    }
-	}
-	
-	//este ojo igual
-	public void sincronizarProyecto(ProyectoInmobiliario proyecto, List<Edificio> nuevosEdificios,
-            List<Long> edificiosAEliminar, List<Long> departamentosAEliminar) throws SQLException {
-		try {
-		connection.setAutoCommit(false);
-		
-		// 1) Eliminar departamentos marcados
-		if (departamentosAEliminar != null) {
-		for (Long idDepto : departamentosAEliminar) {
-		if (idDepto != null && idDepto > 0) {
-		 eliminarDepartamento(idDepto);
-		}
-		}
-		}
-		
-		// 2) Eliminar edificios marcados
-		if (edificiosAEliminar != null) {
-		for (Long idEdi : edificiosAEliminar) {
-		if (idEdi != null && idEdi > 0) {
-		 eliminarEdificio(idEdi);
-		}
-		}
-		}
-		
-		// 3) Actualizar proyecto (fila)
-		if (proyecto.getId() != null && proyecto.getId() > 0) {
-		actualizarProyecto(proyecto);
-		} else {
-		// Si proyecto es nuevo, tu actualizarDatosDatabase() ya maneja proyectos nuevos.
-		// Pero si quieres, puedes insertar aquí.
-		}
-		
-		// 4) Insertar/Actualizar edificios y sus departamentos
-		for (Edificio edi : nuevosEdificios) {
-		if (edi.getId() == null || edi.getId() < 0) {
-		// insertar edificio y sus departamentos
-		insertarEdificio(edi, proyecto.getId());
-		} else {
-		// edificio existe -> actualizar luego sincronizar departamentos
-		actualizarEdificio(edi);
-		
-		// sincronizar departamentos del edificio: 
-		// obtener lista vieja desde cacheEdificios para detectar borrados locales (si quieres)
-		Edificio viejo = cacheEdificios.get(edi.getId());
-		if (viejo != null) {
-		 // eliminar departamentos que estaban en viejo y ya no en edi
-		 List<Long> idsViejos = new ArrayList<>();
-		 for (Departamento d : viejo.getDepartamentos()) idsViejos.add(d.getId());
-		 List<Long> idsNuevos = new ArrayList<>();
-		 for (Departamento d : edi.getDepartamentos()) if (d.getId() != null) idsNuevos.add(d.getId());
-		 for (Long idOld : idsViejos) {
-		     if (idOld != null && !idsNuevos.contains(idOld)) {
-		         eliminarDepartamento(idOld);
-		     }
-		 }
-		}
-		
-		// ahora insertar/actualizar departamentos actuales
-		for (Departamento d : edi.getDepartamentos()) {
-		 if (d.getId() == null || d.getId() < 0) {
-		     insertarDepartamento(d, edi.getId());
-		 } else {
-		     actualizarDepartamento(d);
-		 }
-		}
-		}
-		}
-		
-		// 5) Actualizar caches del proyecto
-		cacheProyectos.put(proyecto.getId(), proyecto);
-		
-		connection.commit();
-		} catch (SQLException ex) {
-		connection.rollback();
-		throw ex;
-		} finally {
-		connection.setAutoCommit(true);
-		}
-		}
-	
-	/**
-	 * Sincroniza el estado de un proyecto y sus entidades asociadas con la base de datos.
-	 * Este método trata las listas de objetos como de solo lectura para evitar errores de modificación concurrente.
-	 * * @param proyecto El objeto ProyectoInmobiliario con su estado final.
-	 * @param edificiosAEliminar Lista de IDs de edificios a eliminar.
-	 * @param departamentosAEliminar Lista de IDs de departamentos a eliminar.
-	 * @throws SQLException Si ocurre un error de base de datos.
-	 */
-	//esta forma no sirve
-	/*public void sincronizarProyecto(ProyectoInmobiliario proyecto, List<Edificio> edificios, List<Long> edificiosAEliminar, List<Long> departamentosAEliminar) throws SQLException {
-	    try {
-	        // Inicia la transacción para asegurar que todas las operaciones se completen o ninguna lo haga.
-	        connection.setAutoCommit(false);
-
-	        // --- PASO 1: Eliminar entidades marcadas para borrado ---
-	        if (departamentosAEliminar != null) {
-	            for (Long idDepto : departamentosAEliminar) {
-	                if (idDepto != null && idDepto > 0) {
-	                    eliminarDepartamento(idDepto); // Asume que solo borra de la DB
-	                }
-	            }
-	        }
-
-	        if (edificiosAEliminar != null) {
-	            for (Long idEdi : edificiosAEliminar) {
-	                if (idEdi != null && idEdi > 0) {
-	                    eliminarEdificio(idEdi); // Asume que solo borra de la DB
-	                }
-	            }
-	        }
-
-	        // --- PASO 2: Actualizar la información del proyecto principal ---
-	        actualizarProyecto(proyecto);
-
-	        // --- PASO 3: Sincronizar la lista de edificios y sus departamentos ---
-	        for (Edificio edificio : edificios) {
-	            if (edificio.getId() == null || edificio.getId() <= 0) {
-	                // Es un edificio nuevo: se inserta en la DB.
-	                // Se asume que insertarEdificio también inserta los departamentos que contiene.
-	                insertarEdificio(edificio, proyecto.getId());
-	            } else {
-	                // Es un edificio existente: se actualizan sus datos.
-	                actualizarEdificio(edificio);
-
-	                // --- Sincronización segura de departamentos para este edificio ---
-	                Edificio edificioViejo = cacheEdificios.get(edificio.getId());
-	                if (edificioViejo != null) {
-	                    // Se crea una lista de IDs de los departamentos que existían ANTES
-	                    List<Long> idsViejos = new ArrayList<>();
-	                    for (Departamento d : edificioViejo.getDepartamentos()) {
-	                        idsViejos.add(d.getId());
-	                    }
-
-	                    // Se crea una lista de IDs de los departamentos que existen AHORA
-	                    List<Long> idsNuevos = new ArrayList<>();
-	                    for (Departamento d : edificio.getDepartamentos()) {
-	                        if (d.getId() != null && d.getId() > 0) {
-	                            idsNuevos.add(d.getId());
-	                        }
-	                    }
-
-	                    // Se comparan las listas: si un ID viejo no está en la lista nueva, se borra de la DB.
-	                    for (Long idViejo : idsViejos) {
-	                        if (!idsNuevos.contains(idViejo)) {
-	                            eliminarDepartamento(idViejo);
-	                        }
-	                    }
-	                }
-	                
-	                // Ahora, se insertan o actualizan los departamentos actuales del edificio
-	                for (Departamento depto : edificio.getDepartamentos()) {
-	                    if (depto.getId() == null || depto.getId() <= 0) {
-	                        insertarDepartamento(depto, edificio.getId()); // Departamento nuevo
-	                    } else {
-	                        actualizarDepartamento(depto); // Departamento existente
-	                    }
-	                }
-	            }
-	        }
+	        stmt.setString	(1, depto.getCodigo());
+	        stmt.setInt		(2, depto.getNumeroPiso());
+	        stmt.setDouble	(3, depto.getMetrosCuadrados());
+	        stmt.setInt		(4, depto.getHabitaciones());
+	        stmt.setInt		(5, depto.getBanos());
+	        stmt.setString	(6, depto.getEstado().name());
+	        stmt.setDouble	(7, depto.getGestorPrecios().getPrecioBase());
+	        stmt.setDouble	(8, depto.getGestorPrecios().getPrecioActual());
+	        stmt.setLong	(9, idEdificio);
 	        
-	        // Si todo fue exitoso, se confirman los cambios en la base de datos.
-	        connection.commit();
-
-	    } catch (SQLException ex) {
-	        // Si cualquier paso falla, se revierten todos los cambios.
-	        connection.rollback();
-	        // Se relanza la excepción para que la capa superior sepa que algo falló.
-	        throw ex;
-	    } finally {
-	        // Se asegura de que la conexión vuelva a su modo normal.
-	        connection.setAutoCommit(true);
+	        stmt.executeUpdate();
+	        
+	        try (ResultSet keys = stmt.getGeneratedKeys()) {
+	            if (keys.next()) depto.setId(keys.getLong(1));
+	        }
 	    }
-	}*/
+	}
 
 }
 

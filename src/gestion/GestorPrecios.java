@@ -1,4 +1,4 @@
-package modelo.datos;
+package gestion;
 
 /**
  * Clase encargada de gestionar todo lo referente a lo "financiero".
