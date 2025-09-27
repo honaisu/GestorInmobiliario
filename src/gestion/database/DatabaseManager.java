@@ -606,22 +606,23 @@ public class DatabaseManager {
 	 * @throws SQLException
 	 */
 	private void insertarDepartamentos(Edificio edificio, long idEdificio) throws SQLException {
-	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	    
 	    for (Departamento depto : edificio.getDepartamentos()) {
 	        // Asignamos el edificio padre
 	        depto.setEdificioPadre(edificio);
 
 	        try (PreparedStatement statement = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
-	            statement.setString(1, depto.getCodigo());
-	            statement.setInt(2, depto.getNumeroPiso());
-	            statement.setDouble(3, depto.getMetrosCuadrados());
-	            statement.setInt(4, depto.getHabitaciones());
-	            statement.setInt(5, depto.getBanos());
-	            statement.setString(6, depto.getEstado().name());
-	            statement.setDouble(7, depto.getGestorPrecios().getPrecioBase());
-	            statement.setDouble(8, depto.getGestorPrecios().getPrecioActual());
-	            statement.setLong(9, idEdificio);
+	            statement.setString	(1, depto.getCodigo());
+	            statement.setInt	(2, depto.getNumeroPiso());
+	            statement.setDouble	(3, depto.getMetrosCuadrados());
+	            statement.setInt	(4, depto.getHabitaciones());
+	            statement.setInt	(5, depto.getBanos());
+	            statement.setString	(6, depto.getEstado().name());
+	            statement.setDouble	(7, depto.getGestorPrecios().getPrecioBase());
+	            statement.setDouble	(8, depto.getGestorPrecios().getPrecioActual());
+	            statement.setLong	(9, idEdificio);
+	            statement.setString	(10, depto.getRutReserva());
 
 	            statement.executeUpdate();
 	            
@@ -663,7 +664,7 @@ public class DatabaseManager {
 	}
 	
 	public void actualizarDepartamento(Departamento depto) throws SQLException {
-	    String query = "UPDATE Departamentos SET codigo = ?, numero_piso = ?, metros_cuadrados = ?, habitaciones = ?, banos = ?, estado = ?, precio_base = ?, precio_actual = ? WHERE id = ?";
+	    String query = "UPDATE Departamentos SET codigo = ?, numero_piso = ?, metros_cuadrados = ?, habitaciones = ?, banos = ?, estado = ?, precio_base = ?, precio_actual = ?, rut_usuario_asociado = ? WHERE id = ?";
 	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
 	        stmt.setString(1, depto.getCodigo());
 	        stmt.setInt(2, depto.getNumeroPiso());
@@ -674,13 +675,14 @@ public class DatabaseManager {
 	        stmt.setDouble(7, depto.getGestorPrecios().getPrecioBase());
 	        stmt.setDouble(8, depto.getGestorPrecios().getPrecioActual());
 	        stmt.setLong(9, depto.getId());
+	        stmt.setString(10, depto.getRutReserva());
 	        stmt.executeUpdate();
 	    }
 	}
 	
 	
 	public void insertarDepartamento(Departamento depto, long idEdificio) throws SQLException {
-	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	    try (PreparedStatement stmt = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
 	        stmt.setString	(1, depto.getCodigo());
 	        stmt.setInt		(2, depto.getNumeroPiso());
@@ -691,6 +693,7 @@ public class DatabaseManager {
 	        stmt.setDouble	(7, depto.getGestorPrecios().getPrecioBase());
 	        stmt.setDouble	(8, depto.getGestorPrecios().getPrecioActual());
 	        stmt.setLong	(9, idEdificio);
+	        stmt.setString	(10, depto.getRutReserva());
 	        
 	        stmt.executeUpdate();
 	        
