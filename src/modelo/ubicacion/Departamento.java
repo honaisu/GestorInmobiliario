@@ -16,6 +16,7 @@ public class Departamento extends EntidadBase {
 	private int banos;
 	private GestorPrecios precios;
 	private Edificio edificioPadre = null;
+	
 	private Comprador comprador = new Comprador();
 	private String rutReserva = "";
 	
@@ -47,7 +48,7 @@ public class Departamento extends EntidadBase {
 	 */
 	public Departamento(long id, String codigo, int numeroPiso, 
 			double metrosCuadrados, int habitaciones, int banos, 
-			EstadoDepartamento estado, double precioBase, double precioActual) {
+			EstadoDepartamento estado, double precioBase, double precioActual, String rutReserva) {
 		super(id);
 		this.codigo = codigo.toUpperCase();
 		this.numeroPiso = numeroPiso;
@@ -56,6 +57,7 @@ public class Departamento extends EntidadBase {
 		this.banos = banos;
 		this.estado = estado;
 		this.precios = new GestorPrecios(precioBase, precioActual);
+		this.rutReserva = rutReserva;
 	}
 
 	

@@ -9,10 +9,7 @@ import modelo.ubicacion.Departamento;
  * y de ver su propia lista de compra.
  */
 public class Comprador extends Usuario {
-	private LinkedList<Departamento> departamentosComprados = new LinkedList<Departamento>();
-	
 	public Comprador() {
-		
 	}
 	
 	public Comprador(String RUT, String NOMBRE, String email, String numero) {
@@ -20,11 +17,4 @@ public class Comprador extends Usuario {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public void agregarDepartamento(Departamento nuevoDepartamento) {
-        this.departamentosComprados.add(nuevoDepartamento); 
-	}
-	
-	public int getCantDepartamentosComprados( ) {
-		return departamentosComprados.size();
-	}
 }

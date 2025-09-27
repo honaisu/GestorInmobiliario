@@ -16,7 +16,6 @@ import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
 import modelo.ubicacion.ProyectoInmobiliario;
-
 /**
  * Clase encargada del manejo de todo lo referente a la database implementada con SQLite.
  * Usa toda la lógica referente a SQL para poder manejar los datos que posee la database.
@@ -85,7 +84,7 @@ public class DatabaseManager {
                 cargarDatos();
             }
         } catch (SQLException e) {
-            System.err.println("Error de conexión: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error de conexión con la DB: " + e.getMessage());
         }
     }
 	
@@ -107,10 +106,6 @@ public class DatabaseManager {
 		rellenarDatosProyecto();
 		rellenarDatosEdificios();
 		rellenarDatosDepartamentos();
-	}
-	
-	public void rellenarRuts() throws SQLException {
-		
 	}
 	
 	/**
@@ -137,6 +132,8 @@ public class DatabaseManager {
 				ProyectoInmobiliario nuevoProyecto = new ProyectoInmobiliario(id, nombre, vendedor, fechaOferta);
 				cacheProyectos.put(id, nuevoProyecto);
 			}
+		} catch (SQLException e) {
+			throw new SQLException("No se pudo crear la conexión inicial.");
 		}
 	}
 	
@@ -170,6 +167,8 @@ public class DatabaseManager {
 					cacheEdificios.put(id, edificio);
 				}
 			}
+		} catch (SQLException e) {
+			throw new SQLException("No se pudo crear la conexión con los edificios.");
 		}
 	}
 	
@@ -198,7 +197,8 @@ public class DatabaseManager {
 				long edificioId = resultados.getLong("edificio_id");
 				
 				String rut = resultados.getString("rut_usuario_asociado");
-				if (rut != null) rutsExistentes.add(rut);
+				if (rut == null) rut = "";
+				else rutsExistentes.add(rut);
 				
 				// Lo siento pero tiene muchos datos :c
 				Departamento departamento = new Departamento(
@@ -210,7 +210,8 @@ public class DatabaseManager {
 						banos, 
 						estado, 
 						precioBase,
-						precioActual);
+						precioActual,
+						rut);
 				
 				Edificio edificioAsociado = cacheEdificios.get(edificioId);
 				if (edificioAsociado != null) {
@@ -218,6 +219,8 @@ public class DatabaseManager {
 					edificioAsociado.agregarDepartamento(departamento);
 				}
 			}
+		} catch (SQLException e) {
+			throw new SQLException("No se pudieron rellenar los datos de los departamentos.");
 		}
 	}
 	
@@ -301,7 +304,7 @@ public class DatabaseManager {
 				departamentos.add(departamentoEncontrado);
 			}
 		} catch (SQLException e) {
-			System.out.println("Error al crear la conexión: " + e.getMessage());
+			JOptionPane.showMessageDialog(null, "Error al crear la conexión con la base de datos.");
 		}
 		
 		return departamentos;
@@ -317,8 +320,7 @@ public class DatabaseManager {
 	 * 
 	 * @throws FiltroNoValidoException 
 	 */
-	public void agregarFiltroValido(Object valor, String lineaSQL, 
-			StringBuilder query, List<Object> parametros) {
+	public void agregarFiltroValido(Object valor, String lineaSQL, StringBuilder query, List<Object> parametros) {
 		if (valor == null) return;
 		
 		query.append(" " + lineaSQL);
@@ -439,7 +441,6 @@ public class DatabaseManager {
 			connection.setAutoCommit(false);
 			
 			procesarEliminaciones();
-			
 			procesarModificaciones();
 			
 			List<Long> idsTemporales = new ArrayList<>();
@@ -464,8 +465,6 @@ public class DatabaseManager {
                     throw new SQLException("La inserción falló, no se afectaron filas.");
                 }
                 
-                
-                
                 try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         long nuevoIdProyecto = generatedKeys.getLong(1);
@@ -481,18 +480,18 @@ public class DatabaseManager {
                         throw new SQLException("No se pudo obtener el ID de un proyecto agregado.");
                     }
                 }
-                
-				System.out.println("probar : " + proyectoNuevo.getNombreProyecto());
 			}
+			
 			connection.commit();
 		} catch (SQLException e) {
-			JOptionPane.showMessageDialog(null, e);
-		} finally {
-			try {				
-				connection.setAutoCommit(true);
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			JOptionPane.showMessageDialog(null, "Error al actualizar: " + e.getMessage());
+		}
+		
+		// Hace un último try para volver a poner el AutoCommit (Updatear al insertar directamente) de la conexión.
+		try {				
+			connection.setAutoCommit(true);
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, "No se pudo settear el auto-commit en la DB.");;
 		}
 	}
 	
@@ -567,6 +566,8 @@ public class DatabaseManager {
 	                    throw new SQLException("No se pudo obtener el ID para el edificio: " + edificio.getNombre());
 	                }
 	            }
+	        } catch (SQLException e) {
+	        	throw new SQLException();
 	        }
 	    }
 	}
@@ -594,7 +595,11 @@ public class DatabaseManager {
 	                    insertarDepartamento(depto, nuevoIdEdificio);
 	                }
 	            }
+	        } catch (SQLException e) {
+	        	throw new SQLException("No se insertaron correctamente las IDs reales");
 	        }
+	    } catch (SQLException e) {
+	    	throw new SQLException("No se insertaron");
 	    }
 	}
 
@@ -606,7 +611,7 @@ public class DatabaseManager {
 	 * @throws SQLException
 	 */
 	private void insertarDepartamentos(Edificio edificio, long idEdificio) throws SQLException {
-	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	    
 	    for (Departamento depto : edificio.getDepartamentos()) {
 	        // Asignamos el edificio padre
@@ -624,17 +629,19 @@ public class DatabaseManager {
 	            statement.setLong	(9, idEdificio);
 	            statement.setString	(10, depto.getRutReserva());
 
-	            statement.executeUpdate();
-	            
-	            // Opcional: Si también necesitas actualizar el ID del departamento en memoria
-	            try(ResultSet generatedKeys = statement.getGeneratedKeys()){
-	                if(generatedKeys.next()){
-	                    depto.setId(generatedKeys.getLong(1));
-	                }
-	            }
-	        }
-	    }
-	}
+                statement.executeUpdate();
+                
+                // Opcional: Si también necesitas actualizar el ID del departamento en memoria
+                try(ResultSet generatedKeys = statement.getGeneratedKeys()){
+                    if(generatedKeys.next()){
+                        depto.setId(generatedKeys.getLong(1));
+                    }
+                }
+            } catch (SQLException e) {
+            	throw new SQLException("No se insertaron correctamente los departamentos a la DB.");
+            }
+        }
+    }
 	
 	
 	
@@ -666,23 +673,26 @@ public class DatabaseManager {
 	public void actualizarDepartamento(Departamento depto) throws SQLException {
 	    String query = "UPDATE Departamentos SET codigo = ?, numero_piso = ?, metros_cuadrados = ?, habitaciones = ?, banos = ?, estado = ?, precio_base = ?, precio_actual = ?, rut_usuario_asociado = ? WHERE id = ?";
 	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-	        stmt.setString(1, depto.getCodigo());
-	        stmt.setInt(2, depto.getNumeroPiso());
-	        stmt.setDouble(3, depto.getMetrosCuadrados());
-	        stmt.setInt(4, depto.getHabitaciones());
-	        stmt.setInt(5, depto.getBanos());
-	        stmt.setString(6, depto.getEstado().name());
-	        stmt.setDouble(7, depto.getGestorPrecios().getPrecioBase());
-	        stmt.setDouble(8, depto.getGestorPrecios().getPrecioActual());
-	        stmt.setLong(9, depto.getId());
-	        stmt.setString(10, depto.getRutReserva());
+	        stmt.setString	(1, depto.getCodigo());
+	        stmt.setInt		(2, depto.getNumeroPiso());
+	        stmt.setDouble	(3, depto.getMetrosCuadrados());
+	        stmt.setInt		(4, depto.getHabitaciones());
+	        stmt.setInt		(5, depto.getBanos());
+	        stmt.setString	(6, depto.getEstado().name());
+	        stmt.setDouble	(7, depto.getGestorPrecios().getPrecioBase());
+	        stmt.setDouble	(8, depto.getGestorPrecios().getPrecioActual());
+	        stmt.setLong	(9, depto.getId());
+	        stmt.setString	(10, depto.getRutReserva());
+	        
 	        stmt.executeUpdate();
+	    } catch (SQLException e) {
+	    	throw new SQLException("No se pudo");
 	    }
 	}
 	
 	
 	public void insertarDepartamento(Departamento depto, long idEdificio) throws SQLException {
-	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	    try (PreparedStatement stmt = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
 	        stmt.setString	(1, depto.getCodigo());
 	        stmt.setInt		(2, depto.getNumeroPiso());
@@ -700,9 +710,10 @@ public class DatabaseManager {
 	        try (ResultSet keys = stmt.getGeneratedKeys()) {
 	            if (keys.next()) depto.setId(keys.getLong(1));
 	        }
+	    } catch (SQLException e) {
+	    	throw new SQLException("Error al ingresar datos al departamento.");
 	    }
 	}
-
 	/**
      * Devuelve la instancia de la conexión actual a la base de datos.
      * @return El objeto Connection.

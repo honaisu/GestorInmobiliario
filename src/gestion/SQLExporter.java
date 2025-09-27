@@ -1,4 +1,4 @@
-package gestion.database;
+package gestion;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -11,18 +11,21 @@ import java.sql.Statement;
 
 import javax.swing.JOptionPane;
 
+/**
+ * Clase encargada de poder exportar una conexión SQL a un formato específico (en este caso, .csv)
+ */
 public class SQLExporter {
+	// No se inicializa, sólo se encarga de exportar :)
+	private SQLExporter() { }
 	
-	private SQLExporter() {
-	}
     /**
-     * Exporta los datos de una tabla específica a un archivo de texto (.csv).
+     * Exporta los datos de una tabla específica a un archivo de texto (EJ: ".csv").
      *
      * @param connection La conexión a la base de datos.
      * @param tableName  El nombre de la tabla que se desea exportar.
      * @param filePath   La ruta del archivo ("exportacion.txt").
      */
-    public static void exportarComoCSV(Connection connection, String tableName, String filePath) {
+    public static void exportarComoCsv(Connection connection, String tableName, String filePath) throws SQLException, IOException {
         // Usamos una consulta simple para obtener todos los datos de la tabla. :)
         String query = "SELECT * FROM " + tableName;
 
@@ -53,12 +56,6 @@ public class SQLExporter {
                 }
                 writer.newLine(); 
             }
-        } catch (SQLException e) {
-        	String mensajeError = "Error de SQL al exportar la tabla " + tableName + ": " + e.getMessage();
-        	JOptionPane.showMessageDialog(null, mensajeError);
-        } catch (IOException e) {
-        	String mensajeError = "Error al escribir en el archivo " + filePath + ": " + e.getMessage();
-        	JOptionPane.showMessageDialog(null, mensajeError);
         }
     }
 }

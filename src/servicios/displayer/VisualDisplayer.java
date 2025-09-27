@@ -395,7 +395,7 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
-	private void registrarUsuario(Edificio e, Departamento d) {
+	private void registrarUsuario(Edificio e, Departamento d, boolean comprar) {
 		JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
 		
 		JTextField txtNombre = new JTextField(20);
@@ -480,11 +480,17 @@ public class VisualDisplayer {
 	        	
 	            
 	            Comprador nuevoUsuario = new Comprador(nombre, rut, email, numero);
-	            nuevoUsuario.agregarDepartamento(d);
-	            d.setEstado(EstadoDepartamento.VENDIDO);
+	            if(comprar) {
+	            	d.setComprador(nuevoUsuario);
+	            	d.setEstado(EstadoDepartamento.VENDIDO);
+	            }else {
+	            	d.setRutReserva(rut);
+	            	d.setEstado(EstadoDepartamento.RESERVADO);
+	            }
+	            
 	            cargarDepartamentosEnTabla(e);
 	            
-	            gestorService.getDatabaseManager().agregarNuevoProyecto(e.getProyectoPadre());
+	            gestorService.getDatabaseManager().marcarProyectoParaModificar(e.getProyectoPadre().getId());
 	            
 	        } else {
 	            JOptionPane.showMessageDialog(
@@ -529,11 +535,12 @@ public class VisualDisplayer {
 	        }
 	        
 	        //TODO ACTUALIZAR EL RUT DE LA RESERVA 
-	        d.setRutReserva("1234");
+	        //d.setRutReserva("1234");
 	        
 	        if (!rut.isEmpty()) {
 	            
 	        	String rutReserva = d.getRutReserva();
+	        	
 	        	
 	        	if(!rutReserva.equals(rut)) {
 	        		JOptionPane.showMessageDialog(
@@ -554,7 +561,7 @@ public class VisualDisplayer {
 	        		d.setEstado(EstadoDepartamento.VENDIDO);
 		            cargarDepartamentosEnTabla(e);
 		            
-		            gestorService.getDatabaseManager().agregarNuevoProyecto(e.getProyectoPadre());
+		            gestorService.getDatabaseManager().marcarProyectoParaModificar(e.getProyectoPadre().getId());
 	        	}
 	            
 	            
@@ -593,7 +600,7 @@ public class VisualDisplayer {
 		
 		
 		if (estado.equals(EstadoDepartamento.DISPONIBLE.toString())) {
-			registrarUsuario(edificioSel, depa);
+			registrarUsuario(edificioSel, depa, true);
 		    
 		}else {
 			verificarUsuario(edificioSel, depa);
@@ -623,7 +630,7 @@ public class VisualDisplayer {
         	}
         }
         
-		registrarUsuario(edificioSel, depa);
+		registrarUsuario(edificioSel, depa, false);
 	}
 	
 	private void accionOpcionesVer(OpcionesVer opcion) {
@@ -1161,8 +1168,16 @@ public class VisualDisplayer {
 
 	                // creamos el objeto departamento (todavía no en DB)
 	                Departamento nuevoDepartemento = new Departamento(
-	                    id, codigo, piso, metros, habitaciones, banos, estadoBase, precio, precio
-	                );
+	                    id, 
+	                    codigo, 
+	                    piso, 
+	                    metros, 
+	                    habitaciones, 
+	                    banos, 
+	                    estadoBase, 
+	                    precio, 
+	                    precio, 
+	                    null);
 
 	                edificioSel.agregarDepartamento(nuevoDepartemento);
 	                // ======================
@@ -1677,7 +1692,7 @@ public class VisualDisplayer {
 		tablaDepartamento.getColumnModel().getColumn(3).setPreferredWidth(70); //HABITACIONES
 		tablaDepartamento.getColumnModel().getColumn(4).setPreferredWidth(30); //BAÑOS
 		tablaDepartamento.getColumnModel().getColumn(5).setPreferredWidth(70); //ESTADO
-		tablaDepartamento.getColumnModel().getColumn(0).setPreferredWidth(60); //PRECIO
+		tablaDepartamento.getColumnModel().getColumn(6).setPreferredWidth(60); //PRECIO
 	}
 	
 	//Color gris en columna en tabla
