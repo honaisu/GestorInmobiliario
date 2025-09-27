@@ -669,6 +669,7 @@ public class DatabaseManager {
 	        stmt.setBoolean	(4, edificio.getInformacion().isTieneEstacionamiento());
 	        stmt.setLong	(5, edificio.getId());
 	        stmt.executeUpdate();
+	        cacheEdificios.put(edificio.getId(), edificio);
         } catch (SQLException e) {
         	throw new SQLException("No se pudieron actualizar los datos del edificio.");
         }
