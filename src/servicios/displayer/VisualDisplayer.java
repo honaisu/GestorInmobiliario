@@ -6,17 +6,19 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.awt.FlowLayout; //pa botones?
 import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.time.LocalDate;
 
+
+import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -36,22 +38,19 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
-import gestion.FiltroBusqueda;
-import gestion.GestorInmobiliarioService;
 import gestion.database.DatabaseManager;
 import gestion.opciones.OpcionesProyecto;
 import gestion.opciones.OpcionesRegistrar;
 import gestion.opciones.OpcionesVer;
-
-import javax.swing.SwingConstants;
-import javax.swing.Timer;
-
+import gestion.FiltroBusqueda;
+import gestion.GestorInmobiliarioService;
+import modelo.ubicacion.ProyectoInmobiliario;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
-import modelo.ubicacion.ProyectoInmobiliario;
-import servicios.displayer.frames.RegistrarProyectoFrame;
 
 /**
  * Clase encargada de mostrar todos los componentes visuales referentes
@@ -59,13 +58,9 @@ import servicios.displayer.frames.RegistrarProyectoFrame;
  */
 public class VisualDisplayer {
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
-	
 	private JFrame registrarFrame;
-	
-	//private JFrame registrarFrame;
 	private JFrame buscarFrame = new JFrame("Filtrar Edificios");
 	private JFrame visualFrame;
-	private List<Long> idProyectos = new ArrayList<>();
 	private JFrame modificarFrame;
 	
 	private DefaultTableModel defaultMain;
@@ -105,6 +100,8 @@ public class VisualDisplayer {
 	//Modificar 
 	private JButton botonModificarE;
 	private JButton botonModificarD;
+	private List<Long> edificiosAEliminar = new LinkedList<>();
+	private List<Long> departamentosAEliminar = new LinkedList<>();
 
 	
 	
@@ -153,21 +150,16 @@ public class VisualDisplayer {
 
         // Pedimos los proyectos al controlador (no sabemos de dónde los saca, y no nos importa)
         Collection<ProyectoInmobiliario> proyectos = gestorService.getAllProyectos();
-        
-        int numeroFila = 1;
+
         // Iteramos y añadimos cada proyecto a la tabla
         for (ProyectoInmobiliario proyecto : proyectos) {
-        	
-        	idProyectos.add(proyecto.getId());
-        	
             Object[] fila = {
-            	numeroFila,
+                proyecto.getId(),
                 proyecto.getNombreProyecto(),
                 proyecto.getVendedor(),
                 proyecto.getFechaOferta()
             };
             defaultMain.addRow(fila);
-            numeroFila++;
         }
     }
 	
@@ -224,17 +216,12 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
-	private void accionOpcionesProyecto(OpcionesProyecto o) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	private JPanel mainProyectorPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(700, 200));
 		
 		// Tabla con datos.
-		String[] columnas = {"N°", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
+		String[] columnas = {"ID", "Nombre Proyecto", "Vendedor", "Fecha Ingreso"};
 		this.defaultMain = new DefaultTableModel(columnas, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -271,22 +258,51 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
+	private void accionOpcionesProyecto(OpcionesProyecto opcion) {
+		switch (opcion) {
+		case VER: {
+			mainFrame.setVisible(false);
+			verProyectoPanel();
+			break;
+		}
+		case REGISTRAR: {
+			mainFrame.setVisible(false);
+			registrarProyectoPanel();
+			break;
+		}
+		
+		case MODIFICAR:{
+			mainFrame.setVisible(false);
+			modificarProyectoPanel();
+			break;
+		}
+		case BUSCAR: {
+			mainFrame.setVisible(false);
+			buscarEdificioPanel();
+			break;
+		}
+		case GUARDAR:{
+		    gestorService.getDatabaseManager().actualizarDatosDatabase();
+			System.exit(0);
+			
+		}
+		case SALIR:
+			System.exit(0); 
+			break;
+		}
+	}
+	
+	public static JFrame getFrame() {
+		return mainFrame;
+	}
+	
 	//----------------------
 	//	Frame Ver Proyecto
 	//----------------------
 	
 	private void verProyectoPanel() {
 		int filaSeleccionada = tablaProyecto.getSelectedRow();
-		if (filaSeleccionada == -1) return;
-		
-		long idProyectoSeleccionado = idProyectos.get(filaSeleccionada);
-		ProyectoInmobiliario proyecto = gestorService.getDatabaseManager()
-                .getMapProyectos()
-                .get(idProyectoSeleccionado);
-		
-	    if (proyecto == null) return;
-		
-		String titulo = proyecto.getNombreProyecto();
+		String titulo = tablaProyecto.getValueAt(filaSeleccionada, 1).toString();
 		
 		visualFrame = new JFrame("Ver Proyecto");
 		//visualFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -310,9 +326,9 @@ public class VisualDisplayer {
 		visualFrame.setLocationRelativeTo(null);
 		visualFrame.setVisible(true);
 		
-		visualFrame.addWindowListener(new WindowAdapter() {
+		visualFrame.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
-		    public void windowClosing(WindowEvent e) {
+		    public void windowClosing(java.awt.event.WindowEvent e) {
 		    	mainFrame.setVisible(true);
 		        
 		    }
@@ -444,8 +460,6 @@ public class VisualDisplayer {
 	    
 	    tablaDepartamento.clearSelection();
 	    
-	    comprarBoton.setEnabled(false);
-        reservarBoton.setEnabled(false);
 	}
 	
 	private void cargarDepartamentosEnTabla(List<Departamento> listaDepartamentos) {
@@ -489,6 +503,8 @@ public class VisualDisplayer {
 		formatearTablaEdi();
 		
 		cargarEdificiosEnTabla(filaSel);
+		comprarBoton.setEnabled(false);
+        reservarBoton.setEnabled(false);
 		
 		// Para añadir funcionalidad al elegir una fila
 		tablaEdificio.getSelectionModel().addListSelectionListener(lambda -> {
@@ -514,7 +530,7 @@ public class VisualDisplayer {
 		});
 		
 		//Tabla Departamento
-		String[] DepaCols = {"Código", "Piso", "metros²", "Habitaciones", "Baños", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "metros^2", "Habitaciones", "Baños", "Estado", "Precio"};
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -579,11 +595,6 @@ public class VisualDisplayer {
 	//	Frame Registrar Proyecto
 	//----------------------------
 	
-	private void formatearTablaEdi() {
-		// TODO Auto-generated method stub
-		
-	}
-
 	/// Parte de registrar ///
 	private void registrarProyectoPanel() {
 		
@@ -616,9 +627,9 @@ public class VisualDisplayer {
 		registrarFrame.setLocationRelativeTo(null);
 		registrarFrame.setVisible(true);
 		
-		registrarFrame.addWindowListener(new WindowAdapter() {
+		registrarFrame.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
-		    public void windowClosing(WindowEvent e) {
+		    public void windowClosing(java.awt.event.WindowEvent e) {
 		    	mainFrame.setVisible(true);
 		        
 		    }
@@ -784,7 +795,7 @@ public class VisualDisplayer {
 	    
 	 // Si el usuario presionó OK
 	    if (result == JOptionPane.OK_OPTION) {
-	    	long id = defaultEdi.getRowCount() + 1;
+	    	long idTemporal = -System.currentTimeMillis();
 	        String nombre = txtNombre.getText().trim();
 	        String direccion = txtDireccion.getText().trim();
 	        String piscina = puntoPiscinaSi.isSelected() ? "Sí" : "No";
@@ -794,7 +805,7 @@ public class VisualDisplayer {
 
 	        if (!nombre.isEmpty() && !direccion.isEmpty()) {
 	            Object[] nuevaFila = {
-	                id,
+	            	idTemporal,
 	                nombre,
 	                direccion,
 	                piscina,  
@@ -804,7 +815,7 @@ public class VisualDisplayer {
 	            
 	            
 	            //Crear un edificio y lo agrego a la lista de edificios?
-	            Edificio nuevoEdificio = new Edificio(id, nombre, direccion, tienePiscina, tieneestacionamiento);
+	            Edificio nuevoEdificio = new Edificio(idTemporal, nombre, direccion, tienePiscina, tieneestacionamiento);
 	            edificiosPorProyecto.add(nuevoEdificio);
 	            //Asignamos una nueva lista de departamentos para este edificio?//esto nuevo
 	            //departamentosPorEdificio.
@@ -821,7 +832,7 @@ public class VisualDisplayer {
 	}
 	
 	private void removerEdificio() {
-		int filaSeleccionada = tablaEdificio.getSelectedRow();
+		/*int filaSeleccionada = tablaEdificio.getSelectedRow();
 	    if (filaSeleccionada != -1) {
 	        // 1) Obtener el ID del edificio desde la tabla
 	        Object valor = defaultEdi.getValueAt(filaSeleccionada, 0);
@@ -832,10 +843,28 @@ public class VisualDisplayer {
 
 	        // 3) Eliminar la fila de la tabla
 	        defaultEdi.removeRow(filaSeleccionada);
+	    }*/
+		int filaSeleccionada = tablaEdificio.getSelectedRow();
+	    if (filaSeleccionada != -1) {
+	        Object valor = defaultEdi.getValueAt(filaSeleccionada, 0);
+	        long idEdificio = Long.parseLong(valor.toString());
+
+	        // 🔹 Si ya existe en DB, marcar para eliminar
+	        if (idEdificio > 0) {
+	            edificiosAEliminar.add(idEdificio);
+	        }
+
+	        // 🔹 Eliminar de la lista temporal (edición/registro)
+	        edificiosPorProyecto.removeIf(e -> e.getId() == idEdificio);
+
+	        // 🔹 Eliminar fila de la tabla
+	        defaultEdi.removeRow(filaSeleccionada);
 	    }
 	}
 	
 	private void agregarDepartamento() {
+		
+		/*//antigua
 		int filaSleccionada= tablaEdificio.getSelectedRow();
         if (filaSleccionada == -1) return;
         
@@ -843,33 +872,26 @@ public class VisualDisplayer {
         Object valor = defaultEdi.getValueAt(filaSleccionada, 0);
         long idEdificio = Long.parseLong(valor.toString());
         
-        //Creamos la lista de departamentos en caso de no existir//nuevo creo k ta mal
-        //if (!departamentosPorEdificio.containsKey(idEdificio)) {
-          //  departamentosPorEdificio.put(idEdificio, new LinkedList<>());
-        //}
-        
-        // Buscar el edificio en caché
         
         Edificio edificioSel = null;
         
         for (Edificio edificio : edificiosPorProyecto) {
             if (edificio.getId() == idEdificio) {
             	edificioSel = edificio; // Guárdalo cuando lo encuentres.
-                break; // 3. Sal del bucle, ya no necesitas seguir buscando.
+                break; 
             }
         }
         
         if (edificioSel != null) {
-        	//cargarDepartamentosEnTabla(edificioSel);
         	
         	///"Código", "Piso", "metros^2","Habitacion", "Baños", "Estado", "Precio"
 			JTextField txtCodigo = new JTextField(20);
 			JTextField txtEstado = new JTextField("Disponible");//inicializamos el depa en disponbible
 			
-			/*spinner funciona así
-			SpinnerNumberModel(valorInicial, minimo, maximo, paso);
-			paso es de cuanto en cuanto va avanzando
-			*/
+			//spinner funciona así
+			//SpinnerNumberModel(valorInicial, minimo, maximo, paso);
+			//paso es de cuanto en cuanto va avanzando
+			
 			// Piso con JSpinner (ej: de 1 a 50)
 		    SpinnerNumberModel pisoModel = new SpinnerNumberModel(1, 1, 65, 1);
 		    JSpinner spinnerPiso = new JSpinner(pisoModel);
@@ -936,7 +958,7 @@ public class VisualDisplayer {
 		            defaultDepa.addRow(nuevaFila);
 		            
 		            //random a aprobar
-		            long id = 1; //pa probar
+		            long id = -System.currentTimeMillis();  
 		            EstadoDepartamento estadoBase = EstadoDepartamento.DISPONIBLE;
 		            
 		            
@@ -959,11 +981,143 @@ public class VisualDisplayer {
 		        }
 		    }
            
-        }
+        }*/
 		
+		
+		//nueva que modifica base de datos?
+		int filaSleccionada = tablaEdificio.getSelectedRow();
+	    if (filaSleccionada == -1) return;
+
+	    // Recuperamos el ID del edificio desde la tabla
+	    Object valor = defaultEdi.getValueAt(filaSleccionada, 0);
+	    long idEdificio = Long.parseLong(valor.toString());
+
+	    Edificio edificioSel = null;
+
+	    for (Edificio edificio : edificiosPorProyecto) {
+	        if (edificio.getId() == idEdificio) {
+	            edificioSel = edificio; // Guárdalo cuando lo encuentres.
+	            break;
+	        }
+	    }
+
+	    if (edificioSel != null) {
+	        ///"Código", "Piso", "metros^2","Habitacion", "Baños", "Estado", "Precio"
+	        JTextField txtCodigo = new JTextField(20);
+	        JTextField txtEstado = new JTextField("Disponible");//inicializamos el depa en disponbible
+
+	        // spinner funciona así
+	        // SpinnerNumberModel(valorInicial, minimo, maximo, paso);
+
+	        // Piso con JSpinner (ej: de 1 a 50)
+	        SpinnerNumberModel pisoModel = new SpinnerNumberModel(1, 1, 65, 1);
+	        JSpinner spinnerPiso = new JSpinner(pisoModel);
+
+	        // Metros cuadrados con JSpinner 
+	        SpinnerNumberModel metrosModel = new SpinnerNumberModel(10, 10, 140, 2);
+	        JSpinner spinnerMetros = new JSpinner(metrosModel);
+
+	        // Habitacion con JSpinner 
+	        SpinnerNumberModel habitacionesModel = new SpinnerNumberModel(1, 1, 5, 1);
+	        JSpinner spinnerHabitaciones = new JSpinner(habitacionesModel);
+
+	        // Baños con JSpinner 
+	        SpinnerNumberModel banosModel = new SpinnerNumberModel(1, 1, 5, 1);
+	        JSpinner spinnerBanos = new JSpinner(banosModel);
+
+	        // Precio con JSpinner 
+	        SpinnerNumberModel precioModel = new SpinnerNumberModel(1000, 1000, 100000, 50);
+	        JSpinner spinnerPrecio = new JSpinner(precioModel);
+
+	        // Creamos un panel
+	        JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+	        panel.add(new JLabel("Código:"));
+	        panel.add(txtCodigo);
+	        panel.add(new JLabel("Piso:"));
+	        panel.add(spinnerPiso);
+	        panel.add(new JLabel("Metros²:"));
+	        panel.add(spinnerMetros);
+	        panel.add(new JLabel("Habitaciones:"));
+	        panel.add(spinnerHabitaciones);
+	        panel.add(new JLabel("Baños:"));
+	        panel.add(spinnerBanos);
+	        panel.add(new JLabel("Estado:"));
+	        panel.add(txtEstado); 
+	        panel.add(new JLabel("Precio:"));
+	        panel.add(spinnerPrecio);
+
+	        int result = JOptionPane.showConfirmDialog(
+	            registrarFrame,
+	            panel,
+	            "Registrar Departamento",
+	            JOptionPane.OK_CANCEL_OPTION,
+	            JOptionPane.PLAIN_MESSAGE
+	        );
+
+	        if (result == JOptionPane.OK_OPTION) {
+	            String codigo = txtCodigo.getText().trim();
+	            int piso = ((Number) spinnerPiso.getValue()).intValue();
+	            int metros = ((Number) spinnerMetros.getValue()).intValue();
+	            int habitaciones = ((Number) spinnerHabitaciones.getValue()).intValue();
+	            int banos = ((Number) spinnerBanos.getValue()).intValue();
+	            String estado = txtEstado.getText().trim();
+	            int precio = ((Number) spinnerPrecio.getValue()).intValue();
+
+	            if (!codigo.isEmpty() && !estado.isEmpty()) {
+
+	                // random a aprobar
+	                long id = -System.currentTimeMillis();  
+	                EstadoDepartamento estadoBase = EstadoDepartamento.DISPONIBLE;
+
+	                // creamos el objeto departamento (todavía no en DB)
+	                Departamento nuevoDepartemento = new Departamento(
+	                    id, codigo, piso, metros, habitaciones, banos, estadoBase, precio, precio
+	                );
+
+	                edificioSel.agregarDepartamento(nuevoDepartemento);
+	                // ======================
+	                // cambio: persistencia inmediata si el edificio ya existe en DB
+	                // ======================
+	                try {
+	                    DatabaseManager database = gestorService.getDatabaseManager();
+	                    if (edificioSel.getId() > 0) { 
+	                        database.agregarNuevoEdificio(edificioSel); // cambio
+	                        // insertarDepartamento ya setea el id real y lo agrega al edificio en cache // cambio
+	                    } else {
+	                        // edificio todavía no está en DB → solo en memoria
+	                        edificioSel.agregarDepartamento(nuevoDepartemento); // cambio
+	                    }
+	                } catch (Exception ex) {
+	                    JOptionPane.showMessageDialog(registrarFrame, 
+	                        "Error al guardar en la base de datos: " + ex.getMessage(),
+	                        "Error DB", JOptionPane.ERROR_MESSAGE);
+	                    ex.printStackTrace();
+	                    return; // salir si hubo error
+	                }
+
+	                // ======================
+	                // cambio: añadir fila a la tabla con los datos del depto
+	                // ======================
+	                Object[] nuevaFila = {
+	                    codigo, piso, metros, habitaciones, banos, estado, precio
+	                };
+	                defaultDepa.addRow(nuevaFila);
+
+	            } else {
+	                JOptionPane.showMessageDialog(
+	                    registrarFrame,
+	                    "Debe ingresar todos los campos",
+	                    "Error",
+	                    JOptionPane.ERROR_MESSAGE
+	                );
+	            }
+	        }
+	    }
 	}
 	
+	
 	private void removerDepartamento() {
+		/*//antigua
 		int filaSeleccionada = tablaDepartamento.getSelectedRow();
 	    if (filaSeleccionada != -1) {
 	        // 1) Recuperar el código del departamento de la tabla
@@ -984,6 +1138,38 @@ public class VisualDisplayer {
 	        }
 
 	        // 3) Eliminar de la tabla
+	        defaultDepa.removeRow(filaSeleccionada);
+	    }*/
+		int filaSeleccionada = tablaDepartamento.getSelectedRow();
+	    if (filaSeleccionada != -1) {
+	        String codigoDepa = defaultDepa.getValueAt(filaSeleccionada, 0).toString();
+
+	        int filaEdificio = tablaEdificio.getSelectedRow();
+	        if (filaEdificio != -1) {
+	            long idEdificio = Long.parseLong(defaultEdi.getValueAt(filaEdificio, 0).toString());
+
+	            for (Edificio edificio : edificiosPorProyecto) {
+	                if (edificio.getId() == idEdificio) {
+	                    Departamento toRemove = null;
+	                    for (Departamento d : edificio.getDepartamentos()) {
+	                        if (d.getCodigo().equals(codigoDepa)) {
+	                            toRemove = d;
+	                            break;
+	                        }
+	                    }
+	                    if (toRemove != null) {
+	                        // 🔹 Si ya existe en DB, marcar para eliminar
+	                        if (toRemove.getId() != null && toRemove.getId() > 0) {
+	                            departamentosAEliminar.add(toRemove.getId());
+	                        }
+	                        edificio.getDepartamentos().remove(toRemove);
+	                    }
+	                    break;
+	                }
+	            }
+	        }
+
+	        // 🔹 Eliminar fila de la tabla
 	        defaultDepa.removeRow(filaSeleccionada);
 	    }
 	}
@@ -1067,7 +1253,7 @@ public class VisualDisplayer {
 				
 		
 		// Tabla Edificio.
-		String[] ediCols = {"N°", "Edificio", "Dirección", "Piscina", "Estacionamiento"};
+		String[] ediCols = {"ID", "Edificio", "Dirección", "Piscina", "Estacionamiento"};
 		this.defaultEdi = new DefaultTableModel(ediCols, 0);
 		this.tablaEdificio = new JTable(defaultEdi);
 		
@@ -1096,13 +1282,12 @@ public class VisualDisplayer {
 		            //Edificio edificioSel = gestorService.getMapEdificios().get(idEdificio);
 		            Edificio edificioSel = null;
 		            
-		            // TODO revisar esto??
 		            for (Edificio edificio : edificiosPorProyecto) {
 		                if (edificio.getId() == idEdificio) {
 		                	edificioSel = edificio; // Guárdalo cuando lo encuentres.
 		                    break; // 3. Sal del bucle, ya no necesitas seguir buscando.
 		                }
-		            } // que es esto?
+		            }
 		            
 		            if (edificioSel != null) {
 		                cargarDepartamentosEnTabla(edificioSel);
@@ -1124,7 +1309,7 @@ public class VisualDisplayer {
 		
 
 		/// Tabla Departamento /// //el id es momentaneo, e spara ver si el depa se agregaba a su respectivo edificio
-		String[] DepaCols = {"Código", "Piso", "Metros²","Habitacion", "Baños", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "metros^2","Habitacion", "Baños", "Estado", "Precio"};
 
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0);
 		this.tablaDepartamento = new JTable(defaultDepa);
@@ -1175,9 +1360,9 @@ public class VisualDisplayer {
 		buscarFrame.setLocationRelativeTo(null);
 		buscarFrame.setVisible(true);
 		
-		buscarFrame.addWindowListener(new WindowAdapter() {
+		buscarFrame.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
-		    public void windowClosing(WindowEvent e) {
+		    public void windowClosing(java.awt.event.WindowEvent e) {
 		    	mainFrame.setVisible(true);
 		        
 		    }
@@ -1335,7 +1520,7 @@ public class VisualDisplayer {
 
 	        // --- Probar ---
 	        FiltroBusqueda filtro = new FiltroBusqueda(precioMin, precioMax, habitaciones, banios,
-					estado, conPiscina.booleanValue(), conEstacionamiento.booleanValue(), direccion);
+					estado, conPiscina, conEstacionamiento, direccion);
 
 	        
 		    DatabaseManager database = gestorService.getDatabaseManager();
@@ -1397,25 +1582,7 @@ public class VisualDisplayer {
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(8).setPreferredWidth(120); // DIRECCION
 	}
 	
-	//Color gris en columna en tabla
-	DefaultTableCellRenderer rendererColumna = new DefaultTableCellRenderer() {
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value,
-				boolean isSelected, boolean hasFocus, int row, int column) {
-			
-			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			
-			// Si está seleccionada, mantenemos el color de selección
-			if (!isSelected) {
-				c.setBackground(new Color(230, 230, 230)); // gris claro
-			}
-			
-			return c;
-		}
-	};
-	
-	/*
-	private static void formatearTablaEdi() {
+	private void formatearTablaEdi() {
 		for (int i = 0; i < tablaEdificio.getColumnCount(); i++) {
 			tablaEdificio.getColumnModel().getColumn(i).setResizable(false);
 			
@@ -1430,9 +1597,7 @@ public class VisualDisplayer {
 		tablaEdificio.getColumnModel().getColumn(3).setPreferredWidth(30); // PISCINA
 		tablaEdificio.getColumnModel().getColumn(4).setPreferredWidth(80); // ESTACIONAMIENTO
 		
-	}*/
-	
-	
+	}
 	
 	private void formatearTablaDep() {
 		for (int i = 0; i < tablaDepartamento.getColumnCount(); i++) {
@@ -1452,12 +1617,30 @@ public class VisualDisplayer {
 		tablaDepartamento.getColumnModel().getColumn(0).setPreferredWidth(60); //PRECIO
 	}
 	
+	//Color gris en columna en tabla
+	DefaultTableCellRenderer rendererColumna = new DefaultTableCellRenderer() {
+	    @Override
+	    public Component getTableCellRendererComponent(JTable table, Object value,
+	            boolean isSelected, boolean hasFocus, int row, int column) {
+
+	        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+	        // Si está seleccionada, mantenemos el color de selección
+	        if (!isSelected) {
+	            c.setBackground(new Color(230, 230, 230)); // gris claro
+	        }
+
+	        return c;
+	    }
+	};
+	
+
+	
 	//----------------------------
 	//	Frame Modificar Proyecto
 	//----------------------------
 	
 	private void modificarProyectoPanel() {
-		
 		
 		int filaSeleccionada = tablaProyecto.getSelectedRow();
 	    if (filaSeleccionada == -1) return; // seguridad por si no hay fila seleccionada
@@ -1497,15 +1680,14 @@ public class VisualDisplayer {
 	    modificarFrame.setLocationRelativeTo(null);
 	    modificarFrame.setVisible(true);
 
-	    modificarFrame.addWindowListener(new WindowAdapter() {
+	    modificarFrame.addWindowListener(new java.awt.event.WindowAdapter() {
 	        @Override
-	        public void windowClosing(WindowEvent e) {
+	        public void windowClosing(java.awt.event.WindowEvent e) {
 	            mainFrame.setVisible(true);
 	        }
 	    });
 		
 	}
-	
 	
 	private JPanel modificarHeaderPanel(ProyectoInmobiliario  proyectoSel) {
 		JPanel panel = new JPanel(new BorderLayout());
@@ -1595,327 +1777,258 @@ public class VisualDisplayer {
 	    panel.add(panelInferior, BorderLayout.SOUTH);
 
 	    // --- Asignación de Listeners ---
-	    botonAgregarE.addActionListener(e 	-> accionOpcionesModificar(OpcionesModificar.AGREGAR_E, proyectoSel));
-	    botonRemoverE.addActionListener(e 	-> accionOpcionesModificar(OpcionesModificar.REMOVER_E, proyectoSel));
-	    botonModificarE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_E, proyectoSel));
-	    botonAgregarD.addActionListener(e 	-> accionOpcionesModificar(OpcionesModificar.AGREGAR_D, proyectoSel));
-	    botonRemoverD.addActionListener(e 	-> accionOpcionesModificar(OpcionesModificar.REMOVER_D, proyectoSel));
-	    botonModificarD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_D, proyectoSel));
-	    botonGuardar.addActionListener(e 	-> accionOpcionesModificar(OpcionesModificar.GUARDAR_CAMBIOS, proyectoSel));
-	    botonCancelar.addActionListener(e 	-> accionOpcionesModificar(OpcionesModificar.CANCELAR, proyectoSel));
+	    botonAgregarE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.AGREGAR_E, proyectoSel));
+	    botonRemoverE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.REMOVER_E, proyectoSel));
+	    botonModificarE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_E, proyectoSel)); // <-- NUEVO
+	    botonAgregarD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.AGREGAR_D, proyectoSel));
+	    botonRemoverD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.REMOVER_D, proyectoSel));
+	    botonModificarD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_D, proyectoSel)); // <-- NUEVO
+	    botonGuardar.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.GUARDAR_CAMBIOS, proyectoSel));
+	    botonCancelar.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.CANCELAR, proyectoSel));
 
 
 	    return panel;
 	}
 	
+	
+	private void modificarEdificio() {
+		int filaSel = tablaEdificio.getSelectedRow();
+        if (filaSel == -1) return; // Salir si no hay nada seleccionado
+
+        // 1. Obtener el objeto Edificio de la lista temporal
+        long idEdificio = (long) defaultEdi.getValueAt(filaSel, 0);
+        Edificio edificioAModificar = edificiosPorProyecto.stream()
+            .filter(e -> e.getId() == idEdificio).findFirst().orElse(null);
+
+        if (edificioAModificar != null) {
+            // 2. Crear el panel de diálogo y PRE-RELLENARLO con los datos actuales
+            JPanel panelModificar = new JPanel(new GridLayout(0, 2, 10, 10));
+            
+            JTextField txtNombre = new JTextField(edificioAModificar.getNombre(), 20);
+            JTextField txtDireccion = new JTextField(edificioAModificar.getInformacion().getDireccion(), 20);
+
+            JRadioButton rbPiscinaSi = new JRadioButton("Sí", edificioAModificar.getInformacion().isTienePiscina());
+            JRadioButton rbPiscinaNo = new JRadioButton("No", !edificioAModificar.getInformacion().isTienePiscina());
+            ButtonGroup grupoPiscina = new ButtonGroup();
+            grupoPiscina.add(rbPiscinaSi);
+            grupoPiscina.add(rbPiscinaNo);
+            JPanel panelPiscina = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            panelPiscina.add(new JLabel("Piscina:"));
+            panelPiscina.add(rbPiscinaSi);
+            panelPiscina.add(rbPiscinaNo);
+
+            JRadioButton rbEstacionamientoSi = new JRadioButton("Sí", edificioAModificar.getInformacion().isTieneEstacionamiento());
+            JRadioButton rbEstacionamientoNo = new JRadioButton("No", !edificioAModificar.getInformacion().isTieneEstacionamiento());
+            ButtonGroup grupoEstacionamiento = new ButtonGroup();
+            grupoEstacionamiento.add(rbEstacionamientoSi);
+            grupoEstacionamiento.add(rbEstacionamientoNo);
+            JPanel panelEstacionamiento = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            panelEstacionamiento.add(new JLabel("Estacionamiento:"));
+            panelEstacionamiento.add(rbEstacionamientoSi);
+            panelEstacionamiento.add(rbEstacionamientoNo);
+
+            panelModificar.add(new JLabel("Nombre del Edificio:"));
+            panelModificar.add(txtNombre);
+            panelModificar.add(new JLabel("Dirección:"));
+            panelModificar.add(txtDireccion);
+            panelModificar.add(panelPiscina);
+            panelModificar.add(panelEstacionamiento);
+
+            int result = JOptionPane.showConfirmDialog(modificarFrame, panelModificar, "Modificar Edificio", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (result == JOptionPane.OK_OPTION) {
+                // 3. Obtener los nuevos valores y actualizar el objeto
+                String nuevoNombre = txtNombre.getText().trim();
+                String nuevaDireccion = txtDireccion.getText().trim();
+                boolean nuevaPiscina = rbPiscinaSi.isSelected();
+                boolean nuevoEstacionamiento = rbEstacionamientoSi.isSelected();
+                
+                edificioAModificar.setNombre(nuevoNombre);
+                edificioAModificar.getInformacion().setDireccion(nuevaDireccion);
+                edificioAModificar.getInformacion().setTienePiscina(nuevaPiscina);
+                edificioAModificar.getInformacion().setTieneEstacionamiento(nuevoEstacionamiento);
+
+                // 4. Actualizar la fila en la tabla para reflejar los cambios al instante
+                defaultEdi.setValueAt(nuevoNombre, filaSel, 1);
+                defaultEdi.setValueAt(nuevaDireccion, filaSel, 2);
+                defaultEdi.setValueAt(nuevaPiscina ? "Sí" : "No", filaSel, 3);
+                defaultEdi.setValueAt(nuevoEstacionamiento ? "Sí" : "No", filaSel, 4);
+            }
+        }
+		
+	}
+	
+	private void modificarDepartamento() {
+		int filaDeptoSel = tablaDepartamento.getSelectedRow();
+        int filaEdificioSel = tablaEdificio.getSelectedRow();
+        if (filaDeptoSel == -1 || filaEdificioSel == -1) return;
+
+        long idEdificio = (long) defaultEdi.getValueAt(filaEdificioSel, 0);
+        String codigoDepto = defaultDepa.getValueAt(filaDeptoSel, 0).toString();
+        
+        Edificio edificioPadre = edificiosPorProyecto.stream().filter(e -> e.getId() == idEdificio).findFirst().orElse(null);
+        Departamento deptoAModificar = null;
+        if (edificioPadre != null) {
+            deptoAModificar = edificioPadre.getDepartamentos().stream()
+                .filter(d -> d.getCodigo().equals(codigoDepto)).findFirst().orElse(null);
+        }
+
+        if (deptoAModificar != null) {
+            JTextField txtCodigo = new JTextField(deptoAModificar.getCodigo(), 20);
+            txtCodigo.setEditable(false);
+            
+         // --- SPINNERS CON RANGOS UNIFICADOS ---
+            int piso = clamp(deptoAModificar.getNumeroPiso(), 1, 65);
+            SpinnerNumberModel pisoModel = new SpinnerNumberModel(piso, 1, 65, 1);
+            JSpinner spinnerPiso = new JSpinner(pisoModel);
+
+            double metros = clamp(deptoAModificar.getMetrosCuadrados(), 10, 140);
+            SpinnerNumberModel metrosModel = new SpinnerNumberModel(metros, 10, 140, 2);
+            JSpinner spinnerMetros = new JSpinner(metrosModel);
+
+            int habitaciones = clamp(deptoAModificar.getHabitaciones(), 1, 5);
+            SpinnerNumberModel habitacionesModel = new SpinnerNumberModel(habitaciones, 1, 5, 1);
+            JSpinner spinnerHabitaciones = new JSpinner(habitacionesModel);
+
+            int banos = clamp(deptoAModificar.getBanos(), 1, 5);
+            SpinnerNumberModel banosModel = new SpinnerNumberModel(banos, 1, 5, 1);
+            JSpinner spinnerBanos = new JSpinner(banosModel);
+
+            double precio = clamp(deptoAModificar.getGestorPrecios().getPrecioActual(), 1000, 100000);
+            SpinnerNumberModel precioModel = new SpinnerNumberModel(precio, 1000, 100000, 50);
+            JSpinner spinnerPrecio = new JSpinner(precioModel);
+
+            JPanel panelModificar = new JPanel(new GridLayout(0, 2, 10, 10));
+		    panelModificar.add(new JLabel("Código (no editable):")); panelModificar.add(txtCodigo);
+		    panelModificar.add(new JLabel("Piso:")); panelModificar.add(spinnerPiso);
+		    panelModificar.add(new JLabel("Metros²:")); panelModificar.add(spinnerMetros);
+		    panelModificar.add(new JLabel("Habitaciones:")); panelModificar.add(spinnerHabitaciones);
+		    panelModificar.add(new JLabel("Baños:")); panelModificar.add(spinnerBanos);
+		    panelModificar.add(new JLabel("Precio:")); panelModificar.add(spinnerPrecio);
+            
+            int result = JOptionPane.showConfirmDialog(modificarFrame, panelModificar, "Modificar Departamento", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (result == JOptionPane.OK_OPTION) {
+                // MEJORA: Obtener valores de forma más segura
+                int nuevoPiso = (int) spinnerPiso.getValue();
+                double nuevosMetros = ((Number) spinnerMetros.getValue()).doubleValue();
+                int nuevasHabitaciones = (int) spinnerHabitaciones.getValue();
+                int nuevosBanos = (int) spinnerBanos.getValue();
+                double nuevoPrecio = ((Number) spinnerPrecio.getValue()).doubleValue();
+                
+                deptoAModificar.setNumeroPiso(nuevoPiso);
+                deptoAModificar.setMetrosCuadrados(nuevosMetros);
+                deptoAModificar.setHabitaciones(nuevasHabitaciones);
+                deptoAModificar.setBanos(nuevosBanos);
+                deptoAModificar.getGestorPrecios().setPrecio(nuevoPrecio);
+
+                // Actualizar la fila en la tabla
+                defaultDepa.setValueAt(nuevoPiso, filaDeptoSel, 1);
+                defaultDepa.setValueAt(nuevosMetros, filaDeptoSel, 2);
+                defaultDepa.setValueAt(nuevasHabitaciones, filaDeptoSel, 3);
+                defaultDepa.setValueAt(nuevosBanos, filaDeptoSel, 4);
+                defaultDepa.setValueAt(nuevoPrecio, filaDeptoSel, 6);
+                
+                
+            }
+        }
+	}
+	
+	private void guardarCambios(ProyectoInmobiliario proyecto) {
+		/*String nuevoNombre = txtNombreProyecto.getText().trim();
+        String nuevoVendedor = txtVendedorProyecto.getText().trim();
+
+        if (nuevoNombre.isEmpty() || nuevoVendedor.isEmpty() || edificiosPorProyecto.isEmpty()) {
+            JOptionPane.showMessageDialog(modificarFrame, "Nombre, Vendedor y al menos un Edificio son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Actualizar el objeto Proyecto original
+        proyecto.setNombreProyecto(nuevoNombre);
+        proyecto.setVendedor(nuevoVendedor);
+        proyecto.getEdificios().clear();
+        proyecto.getEdificios().addAll(edificiosPorProyecto);
+
+        // Guardar en la "base de datos"
+        gestorService.getDatabaseManager().actualizarDatosDatabase();
+
+        // Refrescar tabla principal
+        cargarProyectosEnTabla();
+
+        JOptionPane.showMessageDialog(modificarFrame, "Proyecto actualizado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        modificarFrame.dispose();
+        mainFrame.setVisible(true);*/
+		String nuevoNombre = txtNombreProyecto.getText().trim();
+	    String nuevoVendedor = txtVendedorProyecto.getText().trim();
+
+	    if (nuevoNombre.isEmpty() || nuevoVendedor.isEmpty() || edificiosPorProyecto.isEmpty()) {
+	        JOptionPane.showMessageDialog(modificarFrame, "Nombre, Vendedor y al menos un Edificio son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+	        return;
+	    }
+
+	    // Actualizar objeto en memoria
+	    proyecto.setNombreProyecto(nuevoNombre);
+	    proyecto.setVendedor(nuevoVendedor);
+	    
+	    
+	    proyecto.getEdificios().clear();
+	    proyecto.getEdificios().addAll(edificiosPorProyecto);
+
+	    //gestorService.getDatabaseManager().agregarNuevoProyecto(proyecto);
+	    //gestorService.getDatabaseManager().modificarProyecto(proyecto.getId(), proyecto);
+	    gestorService.getDatabaseManager().marcarProyectoParaModificar(proyecto.getId());
+	    // Refrescar tabla
+	    cargarProyectosEnTabla();
+
+	    JOptionPane.showMessageDialog(modificarFrame, "Proyecto actualizado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+	    // Limpiar las listas de eliminados
+	    edificiosAEliminar.clear();
+	    departamentosAEliminar.clear();
+
+	    modificarFrame.dispose();
+	    mainFrame.setVisible(true);
+	}
+	
 	private void accionOpcionesModificar(OpcionesModificar opcion, ProyectoInmobiliario proyecto) {
 	    switch (opcion) {
+	    
 	        case AGREGAR_E: {
-	            // Lógica para agregar un nuevo edificio a la lista temporal
-	            JTextField txtNombre = new JTextField(20);
-	            JTextField txtDireccion = new JTextField(20);
-	            JRadioButton puntoPiscinaSi = new JRadioButton("Sí", true);
-	            JRadioButton puntoPiscinaNo = new JRadioButton("No");
-	            ButtonGroup grupoPiscina = new ButtonGroup();
-	            grupoPiscina.add(puntoPiscinaSi);
-	            grupoPiscina.add(puntoPiscinaNo);
-	            JPanel panelPiscina = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	            panelPiscina.add(new JLabel("Piscina:"));
-	            panelPiscina.add(puntoPiscinaSi);
-	            panelPiscina.add(puntoPiscinaNo);
-
-	            JRadioButton puntoEstacionamientoSi = new JRadioButton("Sí", true);
-	            JRadioButton puntoEstacionamientoNo = new JRadioButton("No");
-	            ButtonGroup grupoEstacionamiento = new ButtonGroup();
-	            grupoEstacionamiento.add(puntoEstacionamientoSi);
-	            grupoEstacionamiento.add(puntoEstacionamientoNo);
-	            JPanel panelEstacionamiento = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	            panelEstacionamiento.add(new JLabel("Estacionamiento:"));
-	            panelEstacionamiento.add(puntoEstacionamientoSi);
-	            panelEstacionamiento.add(puntoEstacionamientoNo);
-
-	            JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
-	            panel.add(new JLabel("Nombre del Edificio:"));
-	            panel.add(txtNombre);
-	            panel.add(new JLabel("Dirección:"));
-	            panel.add(txtDireccion);
-	            panel.add(panelPiscina);
-	            panel.add(panelEstacionamiento);
-
-	            int result = JOptionPane.showConfirmDialog(modificarFrame, panel, "Agregar Nuevo Edificio", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-	            if (result == JOptionPane.OK_OPTION) {
-	                String nombre = txtNombre.getText().trim();
-	                String direccion = txtDireccion.getText().trim();
-	                boolean tienePiscina = puntoPiscinaSi.isSelected();
-	                boolean tieneEstacionamiento = puntoEstacionamientoSi.isSelected();
-
-	                if (!nombre.isEmpty() && !direccion.isEmpty()) {
-	                    long nuevoId = System.currentTimeMillis(); // ID único simple
-	                    Edificio nuevoEdificio = new Edificio(nuevoId, nombre, direccion, tienePiscina, tieneEstacionamiento);
-	                    edificiosPorProyecto.add(nuevoEdificio);
-
-	                    Object[] nuevaFila = {
-	                        nuevoEdificio.getId(), nombre, direccion,
-	                        tienePiscina ? "Sí" : "No",
-	                        tieneEstacionamiento ? "Sí" : "No"
-	                    };
-	                    defaultEdi.addRow(nuevaFila);
-	                } else {
-	                    JOptionPane.showMessageDialog(modificarFrame, "Debe ingresar todos los campos.", "Error", JOptionPane.ERROR_MESSAGE);
-	                }
-	            }
+	        	agregarEdificio();    	
 	            break;
 	        }
+	        
 	        case REMOVER_E: {
-	            int filaSeleccionada = tablaEdificio.getSelectedRow();
-	            if (filaSeleccionada != -1) {
-	                long idEdificio = (long) defaultEdi.getValueAt(filaSeleccionada, 0);
-	                edificiosPorProyecto.removeIf(e -> e.getId() == idEdificio);
-	                defaultEdi.removeRow(filaSeleccionada);
-	            }
+	        	removerEdificio();
 	            break;
 	        }
 	        
 	        case MODIFICAR_E:{
-	        	int filaSel = tablaEdificio.getSelectedRow();
-	            if (filaSel == -1) break; // Salir si no hay nada seleccionado
-
-	            // 1. Obtener el objeto Edificio de la lista temporal
-	            long idEdificio = (long) defaultEdi.getValueAt(filaSel, 0);
-	            Edificio edificioAModificar = edificiosPorProyecto.stream()
-	                .filter(e -> e.getId() == idEdificio).findFirst().orElse(null);
-
-	            if (edificioAModificar != null) {
-	                // 2. Crear el panel de diálogo y PRE-RELLENARLO con los datos actuales
-	                JPanel panelModificar = new JPanel(new GridLayout(0, 2, 10, 10));
-	                
-	                JTextField txtNombre = new JTextField(edificioAModificar.getNombre(), 20);
-	                JTextField txtDireccion = new JTextField(edificioAModificar.getInformacion().getDireccion(), 20);
-
-	                JRadioButton rbPiscinaSi = new JRadioButton("Sí", edificioAModificar.getInformacion().isTienePiscina());
-	                JRadioButton rbPiscinaNo = new JRadioButton("No", !edificioAModificar.getInformacion().isTienePiscina());
-	                ButtonGroup grupoPiscina = new ButtonGroup();
-	                grupoPiscina.add(rbPiscinaSi);
-	                grupoPiscina.add(rbPiscinaNo);
-	                JPanel panelPiscina = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	                panelPiscina.add(new JLabel("Piscina:"));
-	                panelPiscina.add(rbPiscinaSi);
-	                panelPiscina.add(rbPiscinaNo);
-
-	                JRadioButton rbEstacionamientoSi = new JRadioButton("Sí", edificioAModificar.getInformacion().isTieneEstacionamiento());
-	                JRadioButton rbEstacionamientoNo = new JRadioButton("No", !edificioAModificar.getInformacion().isTieneEstacionamiento());
-	                ButtonGroup grupoEstacionamiento = new ButtonGroup();
-	                grupoEstacionamiento.add(rbEstacionamientoSi);
-	                grupoEstacionamiento.add(rbEstacionamientoNo);
-	                JPanel panelEstacionamiento = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	                panelEstacionamiento.add(new JLabel("Estacionamiento:"));
-	                panelEstacionamiento.add(rbEstacionamientoSi);
-	                panelEstacionamiento.add(rbEstacionamientoNo);
-
-	                panelModificar.add(new JLabel("Nombre del Edificio:"));
-	                panelModificar.add(txtNombre);
-	                panelModificar.add(new JLabel("Dirección:"));
-	                panelModificar.add(txtDireccion);
-	                panelModificar.add(panelPiscina);
-	                panelModificar.add(panelEstacionamiento);
-
-	                int result = JOptionPane.showConfirmDialog(modificarFrame, panelModificar, "Modificar Edificio", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-	                if (result == JOptionPane.OK_OPTION) {
-	                    // 3. Obtener los nuevos valores y actualizar el objeto
-	                    String nuevoNombre = txtNombre.getText().trim();
-	                    String nuevaDireccion = txtDireccion.getText().trim();
-	                    boolean nuevaPiscina = rbPiscinaSi.isSelected();
-	                    boolean nuevoEstacionamiento = rbEstacionamientoSi.isSelected();
-	                    
-	                    edificioAModificar.setNombre(nuevoNombre);
-	                    edificioAModificar.getInformacion().setDireccion(nuevaDireccion);
-	                    edificioAModificar.getInformacion().setTienePiscina(nuevaPiscina);
-	                    edificioAModificar.getInformacion().setTieneEstacionamiento(nuevoEstacionamiento);
-
-	                    // 4. Actualizar la fila en la tabla para reflejar los cambios al instante
-	                    defaultEdi.setValueAt(nuevoNombre, filaSel, 1);
-	                    defaultEdi.setValueAt(nuevaDireccion, filaSel, 2);
-	                    defaultEdi.setValueAt(nuevaPiscina ? "Sí" : "No", filaSel, 3);
-	                    defaultEdi.setValueAt(nuevoEstacionamiento ? "Sí" : "No", filaSel, 4);
-	                }
-	            }
+	        	modificarEdificio();
 	            break;
 	        }
 	        
 	        case AGREGAR_D: {
-	            int filaEdificioSel = tablaEdificio.getSelectedRow();
-	            if (filaEdificioSel == -1) return;
-
-	            long idEdificio = (long) defaultEdi.getValueAt(filaEdificioSel, 0);
-	            Edificio edificioSel = edificiosPorProyecto.stream().filter(e -> e.getId() == idEdificio).findFirst().orElse(null);
-
-	            if (edificioSel != null) {
-	                // Panel para agregar departamento (copiado de tu registrar)
-	                JTextField txtCodigo = new JTextField(20);
-	    		    SpinnerNumberModel pisoModel = new SpinnerNumberModel(1, 1, 65, 1);
-	    		    JSpinner spinnerPiso = new JSpinner(pisoModel);
-	    		    SpinnerNumberModel metrosModel = new SpinnerNumberModel(10, 10, 140, 2);
-	    		    JSpinner spinnerMetros = new JSpinner(metrosModel);
-	    		    SpinnerNumberModel habitacionesModel = new SpinnerNumberModel(1, 1, 5, 1);
-	    		    JSpinner spinnerHabitaciones = new JSpinner(habitacionesModel);
-	    		    SpinnerNumberModel banosModel = new SpinnerNumberModel(1, 1, 5, 1);
-	    		    JSpinner spinnerBanos = new JSpinner(banosModel);
-	    		    SpinnerNumberModel precioModel = new SpinnerNumberModel(1000, 1000, 100000, 50);
-	    		    JSpinner spinnerPrecio = new JSpinner(precioModel);
-
-	                JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
-	    		    panel.add(new JLabel("Código:")); panel.add(txtCodigo);
-	    		    panel.add(new JLabel("Piso:")); panel.add(spinnerPiso);
-	    		    panel.add(new JLabel("Metros²:")); panel.add(spinnerMetros);
-	    		    panel.add(new JLabel("Habitaciones:")); panel.add(spinnerHabitaciones);
-	    		    panel.add(new JLabel("Baños:")); panel.add(spinnerBanos);
-	    		    panel.add(new JLabel("Precio:")); panel.add(spinnerPrecio);
-
-	                int result = JOptionPane.showConfirmDialog(modificarFrame, panel, "Agregar Departamento", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-	                if (result == JOptionPane.OK_OPTION) {
-	                    String codigo = txtCodigo.getText().trim();
-	                    if (!codigo.isEmpty()) {
-	                        long id = System.currentTimeMillis();
-	                        int piso = (int) spinnerPiso.getValue();
-	                        double metros = (double) spinnerMetros.getValue();
-	                        int habitaciones = (int) spinnerHabitaciones.getValue();
-	                        int banos = (int) spinnerBanos.getValue();
-	                        double precio = (double) spinnerPrecio.getValue();
-
-	                        Departamento nuevoDepto = new Departamento(id, codigo, piso, metros, habitaciones, banos, EstadoDepartamento.DISPONIBLE, precio, precio);
-	                        edificioSel.agregarDepartamento(nuevoDepto);
-	                        
-	                        // Refrescar la tabla de departamentos para mostrar el nuevo
-	                        cargarDepartamentosEnTabla(edificioSel.getDepartamentos());
-	                    }
-	                }
-	            }
+	        	agregarDepartamento();
 	            break;
 	        }
+	        
 	        case REMOVER_D: {
-	            int filaDeptoSel = tablaDepartamento.getSelectedRow();
-	            int filaEdificioSel = tablaEdificio.getSelectedRow();
-
-	            if (filaDeptoSel != -1 && filaEdificioSel != -1) {
-	                String codigoDepa = defaultDepa.getValueAt(filaDeptoSel, 0).toString();
-	                long idEdificio = (long) defaultEdi.getValueAt(filaEdificioSel, 0);
-
-	                Edificio edificio = edificiosPorProyecto.stream().filter(e -> e.getId() == idEdificio).findFirst().orElse(null);
-	                if (edificio != null) {
-	                    edificio.getDepartamentos().removeIf(d -> d.getCodigo().equals(codigoDepa));
-	                    defaultDepa.removeRow(filaDeptoSel);
-	                }
-	            }
+	        	removerDepartamento();
 	            break;
 	        }
 	        
 	        case MODIFICAR_D:{
-	        	
-	        	int filaDeptoSel = tablaDepartamento.getSelectedRow();
-	            int filaEdificioSel = tablaEdificio.getSelectedRow();
-	            if (filaDeptoSel == -1 || filaEdificioSel == -1) break;
-
-	            long idEdificio = (long) defaultEdi.getValueAt(filaEdificioSel, 0);
-	            String codigoDepto = defaultDepa.getValueAt(filaDeptoSel, 0).toString();
-	            
-	            Edificio edificioPadre = edificiosPorProyecto.stream().filter(e -> e.getId() == idEdificio).findFirst().orElse(null);
-	            Departamento deptoAModificar = null;
-	            if (edificioPadre != null) {
-	                deptoAModificar = edificioPadre.getDepartamentos().stream()
-	                    .filter(d -> d.getCodigo().equals(codigoDepto)).findFirst().orElse(null);
-	            }
-
-	            if (deptoAModificar != null) {
-	                JTextField txtCodigo = new JTextField(deptoAModificar.getCodigo(), 20);
-	                txtCodigo.setEditable(false);
-	                
-	             // --- SPINNERS CON RANGOS UNIFICADOS ---
-	                int piso = clamp(deptoAModificar.getNumeroPiso(), 1, 65);
-	                SpinnerNumberModel pisoModel = new SpinnerNumberModel(piso, 1, 65, 1);
-	                JSpinner spinnerPiso = new JSpinner(pisoModel);
-
-	                double metros = clamp(deptoAModificar.getMetrosCuadrados(), 10, 140);
-	                SpinnerNumberModel metrosModel = new SpinnerNumberModel(metros, 10, 140, 2);
-	                JSpinner spinnerMetros = new JSpinner(metrosModel);
-
-	                int habitaciones = clamp(deptoAModificar.getHabitaciones(), 1, 5);
-	                SpinnerNumberModel habitacionesModel = new SpinnerNumberModel(habitaciones, 1, 5, 1);
-	                JSpinner spinnerHabitaciones = new JSpinner(habitacionesModel);
-
-	                int banos = clamp(deptoAModificar.getBanos(), 1, 5);
-	                SpinnerNumberModel banosModel = new SpinnerNumberModel(banos, 1, 5, 1);
-	                JSpinner spinnerBanos = new JSpinner(banosModel);
-
-	                double precio = clamp(deptoAModificar.getGestorPrecios().getPrecioActual(), 1000, 100000);
-	                SpinnerNumberModel precioModel = new SpinnerNumberModel(precio, 1000, 100000, 50);
-	                JSpinner spinnerPrecio = new JSpinner(precioModel);
-
-	                JPanel panelModificar = new JPanel(new GridLayout(0, 2, 10, 10));
-	    		    panelModificar.add(new JLabel("Código (no editable):")); panelModificar.add(txtCodigo);
-	    		    panelModificar.add(new JLabel("Piso:")); panelModificar.add(spinnerPiso);
-	    		    panelModificar.add(new JLabel("Metros²:")); panelModificar.add(spinnerMetros);
-	    		    panelModificar.add(new JLabel("Habitaciones:")); panelModificar.add(spinnerHabitaciones);
-	    		    panelModificar.add(new JLabel("Baños:")); panelModificar.add(spinnerBanos);
-	    		    panelModificar.add(new JLabel("Precio:")); panelModificar.add(spinnerPrecio);
-	                
-	                int result = JOptionPane.showConfirmDialog(modificarFrame, panelModificar, "Modificar Departamento", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-	                if (result == JOptionPane.OK_OPTION) {
-	                    // MEJORA: Obtener valores de forma más segura
-	                    int nuevoPiso = (int) spinnerPiso.getValue();
-	                    double nuevosMetros = ((Number) spinnerMetros.getValue()).doubleValue();
-	                    int nuevasHabitaciones = (int) spinnerHabitaciones.getValue();
-	                    int nuevosBanos = (int) spinnerBanos.getValue();
-	                    double nuevoPrecio = ((Number) spinnerPrecio.getValue()).doubleValue();
-	                    
-	                    deptoAModificar.setNumeroPiso(nuevoPiso);
-	                    deptoAModificar.setMetrosCuadrados(nuevosMetros);
-	                    deptoAModificar.setHabitaciones(nuevasHabitaciones);
-	                    deptoAModificar.setBanos(nuevosBanos);
-	                    // Asegúrate de que este método se llame 'setPrecio' en tu clase GestorPrecios
-	                    deptoAModificar.getGestorPrecios().setPrecio(nuevoPrecio);
-
-	                    // Actualizar la fila en la tabla
-	                    defaultDepa.setValueAt(nuevoPiso, filaDeptoSel, 1);
-	                    defaultDepa.setValueAt(nuevosMetros, filaDeptoSel, 2);
-	                    defaultDepa.setValueAt(nuevasHabitaciones, filaDeptoSel, 3);
-	                    defaultDepa.setValueAt(nuevosBanos, filaDeptoSel, 4);
-	                    defaultDepa.setValueAt(nuevoPrecio, filaDeptoSel, 6);
-	                }
-	            }
+	        	modificarDepartamento();
 	            break;
 	        }
 	        
-	        case GUARDAR_CAMBIOS: {
-	            String nuevoNombre = txtNombreProyecto.getText().trim();
-	            String nuevoVendedor = txtVendedorProyecto.getText().trim();
-
-	            if (nuevoNombre.isEmpty() || nuevoVendedor.isEmpty() || edificiosPorProyecto.isEmpty()) {
-	                JOptionPane.showMessageDialog(modificarFrame, "Nombre, Vendedor y al menos un Edificio son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
-	                return;
-	            }
-
-	            // Actualizar el objeto Proyecto original
-	            proyecto.setNombreProyecto(nuevoNombre);
-	            proyecto.setVendedor(nuevoVendedor);
-	            proyecto.getEdificios().clear();
-	            proyecto.getEdificios().addAll(edificiosPorProyecto);
-
-	            // Guardar en la "base de datos"
-	            gestorService.getDatabaseManager().actualizarDatosDatabase();
-
-	            // Refrescar tabla principal
-	            cargarProyectosEnTabla();
-
-	            JOptionPane.showMessageDialog(modificarFrame, "Proyecto actualizado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
-	            modificarFrame.dispose();
-	            mainFrame.setVisible(true);
+	        case GUARDAR_CAMBIOS: { 
+	        	guardarCambios(proyecto);
 	            break;
 	        }
+	        
 	        case CANCELAR: {
 	            modificarFrame.dispose();
 	            mainFrame.setVisible(true);

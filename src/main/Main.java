@@ -2,6 +2,7 @@ package main;
 
 import gestion.GestorInmobiliarioService;
 import gestion.database.DatabaseManager;
+import servicios.displayer.VisualDisplayer;
 import servicios.displayer.VisualDisplayerV2;
 
 /*
@@ -20,7 +21,8 @@ public class Main {
 		GestorInmobiliarioService gestor = new GestorInmobiliarioService();
 		
 		
-		new VisualDisplayerV2(gestor).initialize();
+		//new VisualDisplayerV2(gestor).initialize();
+		new VisualDisplayer(gestor).initialize();
 		//database.probar();
 		//database.actualizarDatosDatabase();
 	}
