@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.awt.FlowLayout; //pa botones?
@@ -27,6 +28,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -70,6 +72,25 @@ import modelo.ubicacion.EstadoDepartamento;
  * a la interfaz gráfica de nuestro programa (implementada con Java Swing).
  */
 public class VisualDisplayer {
+	private ImageIcon icono = new ImageIcon("data/icon.png");
+	private ImageIcon like = new ImageIcon("data/like.png");
+	private ImageIcon nonoRed = new ImageIcon("data/nono.gif");
+	private ImageIcon sad = new ImageIcon("data/sad.png");
+	
+	private Image likeEsc = like.getImage().getScaledInstance(
+            64, 64, Image.SCALE_SMOOTH
+    );
+	private Image likeSad = sad.getImage().getScaledInstance(
+            64, 64, Image.SCALE_SMOOTH
+    );
+	//private Image likeNono = nono.getImage().getScaledInstance(
+    //        64, 64, Image.SCALE_SMOOTH
+    //);
+	
+    private ImageIcon likeRed = new ImageIcon(likeEsc);
+    private ImageIcon sadRed = new ImageIcon(likeSad);
+    //private ImageIcon nonoRed = new ImageIcon(likeNono);
+	
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
 	private JFrame registrarFrame;
 	private JFrame buscarFrame = new JFrame("Filtrar Edificios");
@@ -122,6 +143,10 @@ public class VisualDisplayer {
     
     public VisualDisplayer(GestorInmobiliarioService service) {
 		this.gestorService = service;
+		
+		mainFrame.setIconImage(icono.getImage());
+		buscarFrame.setIconImage(icono.getImage());
+		
 	}
 	
 	/**
@@ -133,6 +158,8 @@ public class VisualDisplayer {
 	public void initialize() {
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setResizable(false);
+		
+		
 		
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -318,9 +345,10 @@ public class VisualDisplayer {
 		String titulo = tablaProyecto.getValueAt(filaSeleccionada, 1).toString();
 		
 		visualFrame = new JFrame("Ver Proyecto");
-		//visualFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		visualFrame.setIconImage(icono.getImage());
+		
 		visualFrame.setResizable(false);
-		//visualFrame.setPreferredSize(new Dimension(400, 300));
+		
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
@@ -436,7 +464,8 @@ public class VisualDisplayer {
 			                registrarFrame, 
 			                ex.getMessage(), 
 			                "Error", 
-			                JOptionPane.ERROR_MESSAGE
+			                JOptionPane.PLAIN_MESSAGE,
+	        		        nonoRed
 			            );
 		            return;
 		        }
@@ -448,7 +477,8 @@ public class VisualDisplayer {
 			                registrarFrame, 
 			                ex.getMessage(), 
 			                "Error", 
-			                JOptionPane.ERROR_MESSAGE
+			                JOptionPane.PLAIN_MESSAGE,
+	        		        nonoRed
 			            );
 		            return;
 		        }
@@ -460,7 +490,8 @@ public class VisualDisplayer {
 			                registrarFrame, 
 			                ex.getMessage(), 
 			                "Error", 
-			                JOptionPane.ERROR_MESSAGE
+			                JOptionPane.PLAIN_MESSAGE,
+	        		        nonoRed
 			            );
 		            return;
 		        }
@@ -472,7 +503,8 @@ public class VisualDisplayer {
 			                registrarFrame, 
 			                ex.getMessage(), 
 			                "Error", 
-			                JOptionPane.ERROR_MESSAGE
+			                JOptionPane.PLAIN_MESSAGE,
+	        		        nonoRed
 			            );
 		            return;
 		        }
@@ -488,6 +520,14 @@ public class VisualDisplayer {
 	            	d.setEstado(EstadoDepartamento.RESERVADO);
 	            }
 	            
+	            JOptionPane.showMessageDialog(
+        		        registrarFrame,
+        		        "Exito",
+        		        "RUT Correcto",
+        		        JOptionPane.PLAIN_MESSAGE,
+        		        likeRed
+        		);
+	            
 	            cargarDepartamentosEnTabla(e);
 	            
 	            gestorService.getDatabaseManager().marcarProyectoParaModificar(e.getProyectoPadre().getId());
@@ -497,7 +537,8 @@ public class VisualDisplayer {
 	                registrarFrame, 
 	                "Debe ingresar todos los campos", 
 	                "Error", 
-	                JOptionPane.ERROR_MESSAGE
+	                JOptionPane.PLAIN_MESSAGE,
+    		        nonoRed
 	            );
 	        }
 	    }
@@ -527,15 +568,14 @@ public class VisualDisplayer {
 	        } catch (RutInvalidoException ex) {
 	        	JOptionPane.showMessageDialog(
 		                registrarFrame, 
-		                "RUT Inválido", 
+		                ex.getMessage(), 
 		                "Error", 
-		                JOptionPane.ERROR_MESSAGE
+		                JOptionPane.PLAIN_MESSAGE,
+        		        nonoRed
 		            );
 	            return;
 	        }
 	        
-	        //TODO ACTUALIZAR EL RUT DE LA RESERVA 
-	        //d.setRutReserva("1234");
 	        
 	        if (!rut.isEmpty()) {
 	            
@@ -547,16 +587,17 @@ public class VisualDisplayer {
 			                registrarFrame, 
 			                "RUT Incorrecto", 
 			                "Error", 
-			                JOptionPane.ERROR_MESSAGE
+			                JOptionPane.PLAIN_MESSAGE,
+	        		        sadRed
 			            );
 	        	}else {
-	        		//TODO arreglar esto
 	        		JOptionPane.showMessageDialog(
-			                registrarFrame, 
-			                "Exito", 
-			                "RUT Correcto", 
-			                JOptionPane.OK_OPTION
-			            );
+	        		        registrarFrame,
+	        		        "Exito",
+	        		        "RUT Correcto",
+	        		        JOptionPane.PLAIN_MESSAGE,
+	        		        likeRed
+	        		);
 	        		
 	        		d.setEstado(EstadoDepartamento.VENDIDO);
 		            cargarDepartamentosEnTabla(e);
@@ -571,7 +612,8 @@ public class VisualDisplayer {
 	                registrarFrame, 
 	                "Debe ingresar todos los campos", 
 	                "Error", 
-	                JOptionPane.ERROR_MESSAGE
+	                JOptionPane.PLAIN_MESSAGE,
+    		        nonoRed
 	            );
 	        }
 	    }
@@ -709,7 +751,9 @@ public class VisualDisplayer {
 	            d.getBanos(),
 	            d.getEstado().toString(),
 	            d.getGestorPrecios().getPrecioActual(),
-	            d.getEdificioPadre().getInformacion().getDireccion()
+	            d.getEdificioPadre().getInformacion().getDireccion(),
+	            d.getEdificioPadre().getInformacion().isTieneEstacionamiento() ? "SI" : "NO",
+	            d.getEdificioPadre().getInformacion().isTienePiscina() ? "SI" : "NO"
 	        };
 	        
 	        defaultDepa.addRow(fila);
@@ -830,8 +874,8 @@ public class VisualDisplayer {
 	/// Parte de registrar ///
 	private void registrarProyectoPanel() {
 		
-		
 		registrarFrame = new JFrame("Registrar Proyecto");
+		registrarFrame.setIconImage(icono.getImage());
 
 		registrarFrame.setResizable(false);
 		
@@ -1465,7 +1509,7 @@ public class VisualDisplayer {
 	
 	private JPanel buscarProyectorPanel() {
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0));
-		panel.setPreferredSize(new Dimension(700, 300));
+		panel.setPreferredSize(new Dimension(900, 300));
 		
 		//Tabla Departamento
 		String[] DepaCols = {"Nombre Proyecto", "Código", "Piso", "Metros²", "Habitaciones", "Baños",
@@ -1658,6 +1702,8 @@ public class VisualDisplayer {
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(6).setPreferredWidth(70); // ESTADO
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(7).setPreferredWidth(60); // PRECIO
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(8).setPreferredWidth(120); // DIRECCION
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(9).setPreferredWidth(100); // ESTACIONAMIENTO
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(10).setPreferredWidth(50); // PISCINA
 	}
 	
 	private void formatearTablaEdi() {
@@ -1728,6 +1774,7 @@ public class VisualDisplayer {
 	                                .get(idProyecto);
 
 	    modificarFrame = new JFrame("Modificar Proyecto");
+	    modificarFrame.setIconImage(icono.getImage());
 	    modificarFrame.setResizable(false);
 
 	    // llenar tus listas temporales con los datos del proyecto
