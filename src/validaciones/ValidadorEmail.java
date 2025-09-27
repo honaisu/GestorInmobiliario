@@ -9,7 +9,7 @@ public class ValidadorEmail {
 	 public static void validarEmail(String email) throws EmailInvalidoException {
 	        // Expresión regular para validar la mayoría de los emails comunes.
 	        String patron = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
-
+	        
 	        if (email == null || !email.matches(patron)) {
 	            throw new EmailInvalidoException("El formato del email no es válido.");
 	        }

@@ -1,6 +1,6 @@
 package validaciones;
 
-import excepciones.RutIvalidoException;
+import excepciones.RutInvalidoException;
 
 public class ValidadorRut {
 	
@@ -9,9 +9,9 @@ public class ValidadorRut {
 	 * Tomando en cuenta que es RUT Chileno eso si
 	 * con formato tipo -> 12345678-9 o -k (por eso es kK\\d)
 	 * */ //no se si sirva o es muy básico
-	public static void validarRut(String rut) throws RutIvalidoException {
+	public static void validarRut(String rut) throws RutInvalidoException {
         if (rut == null || !rut.matches("^\\d{7,8}-[kK\\d]$")) {
-            throw new RutIvalidoException("El formato del RUT no es válido. Debe ser 12345678-9.");
+            throw new RutInvalidoException("El formato del RUT no es válido. Debe ser 12345678-9.");
         }
 
         try {
@@ -23,11 +23,11 @@ public class ValidadorRut {
             char dvCalculado = calcularDigitoVerificador(rutNumerico);
 
             if (dv != dvCalculado) {
-                throw new RutIvalidoException("El dígito verificador es incorrecto.");
+                throw new RutInvalidoException("El dígito verificador es incorrecto.");
             }
         } catch (NumberFormatException e) {
             // Esto no debería ocurrir si la expresión regular es correcta, pero por si acaso.
-            throw new RutIvalidoException("El número del RUT contiene caracteres no válidos.");
+            throw new RutInvalidoException("El número del RUT contiene caracteres no válidos.");
         }
     }
 	

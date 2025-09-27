@@ -6,10 +6,6 @@ public class ValidadorNombre {
 	
 	//Enfocado en validar el nombre del vendedor
 	public static void validarNombre(String nombre) throws NombreInvalidoException {
-        // El nombre no puede ser nulo o estar vacío.
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new NombreInvalidoException("El nombre no puede estar vacío.");
-        }
 
         // Limitar la longitud máxima (ej: 50 caracteres).
         if (nombre.length() > 50) {

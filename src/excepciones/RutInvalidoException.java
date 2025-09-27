@@ -1,8 +1,8 @@
 package excepciones;
 
-public class RutIvalidoException extends Exception{
+public class RutInvalidoException extends Exception{
 
-	 public RutIvalidoException(String mensaje) {
+	 public RutInvalidoException(String mensaje) {
 	        super(mensaje); // Llama al constructor de la clase padre (Exception)
 	 }
 }
