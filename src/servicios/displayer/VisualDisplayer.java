@@ -49,7 +49,6 @@ import javax.swing.Timer;
 
 
 import excepciones.EmailInvalidoException;
-import excepciones.FiltroNoValidoException;
 import excepciones.NombreInvalidoException;
 import excepciones.RutInvalidoException;
 import excepciones.TelefonoInvalidoException;
@@ -58,7 +57,6 @@ import validaciones.ValidadorNombre;
 import validaciones.ValidadorRut;
 import validaciones.ValidadorTelefono;
 import modelo.entidades.Comprador;
-import modelo.entidades.Usuario;
 
 import gestion.database.DatabaseManager;
 import gestion.opciones.OpcionesProyecto;
@@ -77,24 +75,26 @@ import modelo.ubicacion.EstadoDepartamento;
  * a la interfaz gráfica de nuestro programa (implementada con Java Swing).
  */
 public class VisualDisplayer {
-	private ImageIcon icono = new ImageIcon("data/icon.png");
-	private ImageIcon like = new ImageIcon("data/like.png");
-	private ImageIcon nonoRed = new ImageIcon("data/nono.gif");
-	private ImageIcon sad = new ImageIcon("data/sad.png");
+	private ImageIcon icono = new ImageIcon("data/images/icon.png");
+	private ImageIcon like = new ImageIcon("data/images/like.png");
+	private ImageIcon nonoRed = new ImageIcon("data/images/nono.gif");
+	private ImageIcon sad = new ImageIcon("data/images/sad.png");
+	private ImageIcon vanishRed = new ImageIcon("data/images/vanish.gif");
+	private ImageIcon question = new ImageIcon("data/images/question.png");
 	
 	private Image likeEsc = like.getImage().getScaledInstance(
             64, 64, Image.SCALE_SMOOTH
     );
-	private Image likeSad = sad.getImage().getScaledInstance(
+	private Image SadEsc = sad.getImage().getScaledInstance(
             64, 64, Image.SCALE_SMOOTH
     );
-	//private Image likeNono = nono.getImage().getScaledInstance(
-    //        64, 64, Image.SCALE_SMOOTH
-    //);
+	private Image quesEsc = question.getImage().getScaledInstance(
+            64, 64, Image.SCALE_SMOOTH
+    );
 	
     private ImageIcon likeRed = new ImageIcon(likeEsc);
-    private ImageIcon sadRed = new ImageIcon(likeSad);
-    //private ImageIcon nonoRed = new ImageIcon(likeNono);
+    private ImageIcon sadRed = new ImageIcon(SadEsc);
+    private ImageIcon quesRed = new ImageIcon(quesEsc);
 	
 	private static JFrame mainFrame = new JFrame("Gestor de Inmobiliaria");
 	private JFrame registrarFrame;
@@ -567,11 +567,12 @@ public class VisualDisplayer {
 	    panel.add(txtRut);
 	    
 	    int result = JOptionPane.showConfirmDialog(
-	            visualFrame,   // ventana padre que vamos a usar
+	            visualFrame,   
 	            panel, 
-	            "Verificr Usuario", 
+	            "Verificar Usuario", 
 	            JOptionPane.OK_CANCEL_OPTION,
-	            JOptionPane.PLAIN_MESSAGE
+	            JOptionPane.PLAIN_MESSAGE,
+	            quesRed
 	    );
 	    if (result == JOptionPane.OK_OPTION) {
 	        String rut = txtRut.getText().trim();
@@ -675,13 +676,36 @@ public class VisualDisplayer {
 		//TODO imprimir recibo como txt
 		if (estado.equals(EstadoDepartamento.VENDIDO.toString())) {
 			
-			//JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+			//Actualizar los precios por demanda
+			int departamentosTotales = edificioSel.getDepartamentos().size();
+			int departamentosVendidos = 0;
+			
+			LinkedList<Departamento> depas = edificioSel.getDepartamentos();
+			
+			for (Departamento d: depas) {
+				if(d.getEstado().name().equals(EstadoDepartamento.VENDIDO.toString())) {
+					departamentosVendidos++;
+				}
+			}
+			
+			for (Departamento d: depas) {
+				if(!d.getEstado().name().equals(EstadoDepartamento.VENDIDO.toString())) {
+					d.getGestorPrecios().actualizarPrecioPorDemanda(departamentosTotales, departamentosVendidos, edificioSel);
+				}
+			}
+			
+			cargarDepartamentosEnTabla(edificioSel);
+            
+            gestorService.getDatabaseManager().marcarProyectoParaModificar(edificioSel.getProyectoPadre().getId());
+            
 			int result = JOptionPane.showConfirmDialog(
 		            visualFrame,
 		            "¿Desea recibo?", 
 		            "Compra Realizada",
 		            JOptionPane.YES_NO_OPTION,
-		            JOptionPane.PLAIN_MESSAGE);
+		            JOptionPane.PLAIN_MESSAGE,
+		            quesRed
+			);
 			
 			if (result == JOptionPane.YES_OPTION) {
 				try {
@@ -1284,7 +1308,7 @@ public class VisualDisplayer {
 	                } catch (Exception ex) {
 	                    JOptionPane.showMessageDialog(registrarFrame, 
 	                        "Error al guardar en la base de datos: " + ex.getMessage(),
-	                        "Error DB", JOptionPane.ERROR_MESSAGE);
+	                        "Error DB", JOptionPane.PLAIN_MESSAGE, vanishRed);
 	                    ex.printStackTrace();
 	                    return; // salir si hubo error
 	                }
@@ -1302,7 +1326,8 @@ public class VisualDisplayer {
 	                    registrarFrame,
 	                    "Debe ingresar todos los campos",
 	                    "Error",
-	                    JOptionPane.ERROR_MESSAGE
+	                    JOptionPane.PLAIN_MESSAGE,
+	                    nonoRed
 	                );
 	            }
 	        }
@@ -1349,7 +1374,7 @@ public class VisualDisplayer {
 	    if (nombreProyecto.isEmpty() || vendedor.isEmpty() || edificiosPorProyecto.isEmpty()) {
 	        JOptionPane.showMessageDialog(registrarFrame,
 	            "Debe ingresar Nombre, Vendedor y al menos un Edificio.",
-	            "Error", JOptionPane.ERROR_MESSAGE);
+	            "Error", JOptionPane.PLAIN_MESSAGE, nonoRed);
 	        return;
 	    }
 
@@ -1372,7 +1397,7 @@ public class VisualDisplayer {
 	    // Mensaje de éxito
 	    JOptionPane.showMessageDialog(registrarFrame,
 	        "Proyecto registrado con éxito.",
-	        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+	        "Éxito", JOptionPane.PLAIN_MESSAGE, likeRed);
 	    
 	    mainFrame.setVisible(true);
 	    registrarFrame.dispose(); // cerrar la ventana de registrar
@@ -1906,54 +1931,66 @@ public class VisualDisplayer {
 
 	    // --- Panel Central para Agregar/Remover ---
 	    JPanel panelCentral = new JPanel(new GridLayout(1, 2, 10, 0));
-	    
-	 // --- Bloque Edificio ---
+
+	    // --- Bloque Edificio ---
 	    JPanel panelEdificio = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
 	    botonAgregarE = new JButton(OpcionesModificar.AGREGAR_E.getNombre());
 	    botonRemoverE = new JButton(OpcionesModificar.REMOVER_E.getNombre());
-	    botonModificarE = new JButton(OpcionesModificar.MODIFICAR_E.getNombre()); // <-- NUEVO
+	    botonModificarE = new JButton(OpcionesModificar.MODIFICAR_E.getNombre());
 	    botonRemoverE.setEnabled(false);
-	    botonModificarE.setEnabled(false); // <-- NUEVO
+	    botonModificarE.setEnabled(false);
 	    panelEdificio.add(botonAgregarE);
 	    panelEdificio.add(botonRemoverE);
-	    panelEdificio.add(botonModificarE); // <-- NUEVO
-	    
-	    
-	 // --- Bloque Departamento ---
+	    panelEdificio.add(botonModificarE);
+
+	    // --- Bloque Departamento ---
 	    JPanel panelDepartamento = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
 	    botonAgregarD = new JButton(OpcionesModificar.AGREGAR_D.getNombre());
 	    botonRemoverD = new JButton(OpcionesModificar.REMOVER_D.getNombre());
-	    botonModificarD = new JButton(OpcionesModificar.MODIFICAR_D.getNombre()); // <-- ATENCIÓN: Tu enum dice "Modificar Edificio", lo corregí a "Modificar Depto"
+	    botonModificarD = new JButton(OpcionesModificar.MODIFICAR_D.getNombre());
 	    botonAgregarD.setEnabled(false);
 	    botonRemoverD.setEnabled(false);
-	    botonModificarD.setEnabled(false); // <-- NUEVO
+	    botonModificarD.setEnabled(false);
 	    panelDepartamento.add(botonAgregarD);
 	    panelDepartamento.add(botonRemoverD);
-	    panelDepartamento.add(botonModificarD); // <-- NUEVO
+	    panelDepartamento.add(botonModificarD);
 
 	    panelCentral.add(panelEdificio);
 	    panelCentral.add(panelDepartamento);
 
-	    // --- Panel Inferior para Guardar/Cancelar ---
+	    // --- Panel Inferior Izquierda (Guardar/Cancelar) ---
 	    JPanel panelInferior = new JPanel(new FlowLayout(FlowLayout.CENTER));
 	    JButton botonGuardar = new JButton(OpcionesModificar.GUARDAR_CAMBIOS.getNombre());
 	    JButton botonCancelar = new JButton(OpcionesModificar.CANCELAR.getNombre());
 	    panelInferior.add(botonGuardar);
 	    panelInferior.add(botonCancelar);
 
-	    panel.add(panelCentral, BorderLayout.CENTER);
-	    panel.add(panelInferior, BorderLayout.SOUTH);
+	    // --- Panel Inferior Derecha (Eliminar) ---
+	    JPanel panelEliminar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	    JButton botonEliminar = new JButton("Eliminar Proyecto");
+	    
+	    botonEliminar.setBackground(new Color(227, 89, 89));
+	    botonEliminar.setForeground(Color.WHITE);
+	    panelEliminar.add(botonEliminar);
 
-	    // --- Asignación de Listeners ---
+	    // --- Contenedor para Sur ---
+	    JPanel panelSur = new JPanel(new BorderLayout());
+	    panelSur.add(panelInferior, BorderLayout.CENTER);
+	    panelSur.add(panelEliminar, BorderLayout.EAST);
+
+	    panel.add(panelCentral, BorderLayout.CENTER);
+	    panel.add(panelSur, BorderLayout.SOUTH);
+
+	    // --- Listeners ---
 	    botonAgregarE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.AGREGAR_E, proyectoSel));
 	    botonRemoverE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.REMOVER_E, proyectoSel));
-	    botonModificarE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_E, proyectoSel)); // <-- NUEVO
+	    botonModificarE.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_E, proyectoSel));
 	    botonAgregarD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.AGREGAR_D, proyectoSel));
 	    botonRemoverD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.REMOVER_D, proyectoSel));
-	    botonModificarD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_D, proyectoSel)); // <-- NUEVO
+	    botonModificarD.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.MODIFICAR_D, proyectoSel));
 	    botonGuardar.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.GUARDAR_CAMBIOS, proyectoSel));
 	    botonCancelar.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.CANCELAR, proyectoSel));
-
+	    botonEliminar.addActionListener(e -> accionOpcionesModificar(OpcionesModificar.ELIMINAR_PROYECTO, proyectoSel));
 
 	    return panel;
 	}
@@ -2148,7 +2185,11 @@ public class VisualDisplayer {
 	    // Refrescar tabla
 	    cargarProyectosEnTabla();
 
-	    JOptionPane.showMessageDialog(modificarFrame, "Proyecto actualizado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+	    JOptionPane.showMessageDialog(modificarFrame,
+	    		"Proyecto actualizado con éxito.", 
+	    		"Éxito", 
+	    		JOptionPane.PLAIN_MESSAGE,
+	    		likeRed);
 
 	    // Limpiar las listas de eliminados
 	    edificiosAEliminar.clear();
@@ -2156,6 +2197,32 @@ public class VisualDisplayer {
 
 	    modificarFrame.dispose();
 	    mainFrame.setVisible(true);
+	}
+	
+	private void eliminarProyecto(ProyectoInmobiliario proyecto) {
+		int result = JOptionPane.showConfirmDialog(
+	            modificarFrame,
+	            "¿Desea Eliminar el Proyecto " +proyecto.getNombreProyecto()+"?", 
+	            "Eliminar Proyecto",
+	            JOptionPane.YES_NO_OPTION,
+	            JOptionPane.PLAIN_MESSAGE,
+	            quesRed); 
+		
+		if (result == JOptionPane.YES_OPTION) {
+			gestorService.getDatabaseManager().eliminarProyecto(proyecto.getId());
+			
+			JOptionPane.showConfirmDialog(
+		            modificarFrame,
+		            "Proyecto " + proyecto.getNombreProyecto() + " eliminado correctamente", 
+		            "Eliminar Proyecto",
+		            JOptionPane.DEFAULT_OPTION,
+		            JOptionPane.PLAIN_MESSAGE,
+		            vanishRed); 
+			cargarProyectosEnTabla();
+			
+			modificarFrame.dispose();
+		    mainFrame.setVisible(true);
+		}
 	}
 	
 	private void accionOpcionesModificar(OpcionesModificar opcion, ProyectoInmobiliario proyecto) {
@@ -2196,6 +2263,10 @@ public class VisualDisplayer {
 	            break;
 	        }
 	        
+	        case ELIMINAR_PROYECTO:{
+	        	eliminarProyecto(proyecto);
+	        	break;
+	        }
 	        case CANCELAR: {
 	            modificarFrame.dispose();
 	            mainFrame.setVisible(true);

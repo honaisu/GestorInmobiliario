@@ -8,6 +8,7 @@ public enum OpcionesModificar {
     REMOVER_D("Remover Departamento"),
     MODIFICAR_D("Modificar Departamento"),
     GUARDAR_CAMBIOS("Guardar Cambios"),
+    ELIMINAR_PROYECTO("Eliminar Proyecto"),
     CANCELAR("Cancelar");
 
     private String nombre;

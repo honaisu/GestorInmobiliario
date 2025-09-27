@@ -2,9 +2,40 @@ package validaciones;
 
 import excepciones.NombreInvalidoException;
 
+/**
+ * Clase utilitaria para validar nombres de personas.
+ * <p>
+ * Esta clase no se instancia; todos sus métodos son estáticos.
+ * Permite verificar que un nombre cumpla con restricciones de longitud y caracteres válidos.
+ * </p>
+ * 
+ * <p>Ejemplo de uso:</p>
+ * <pre>
+ * try {
+ *     ValidadorNombre.validarNombre("Juan Pérez");
+ * } catch (NombreInvalidoException e) {
+ *     System.out.println("Nombre inválido: " + e.getMessage());
+ * }
+ * </pre>
+ * 
+ * @author 🄯 Los Bien Corporation
+ */
 public class ValidadorNombre {
 	
-	//Enfocado en validar el nombre del vendedor
+	/**
+     * Valida que un nombre cumpla con las reglas de formato y longitud.
+     * <p>
+     * Reglas:
+     * <ul>
+     *   <li>Máximo 50 caracteres.</li>
+     *   <li>Sólo letras y espacios (incluye acentos y la letra ñ).</li>
+     * </ul>
+     * </p>
+     *
+     * @param nombre nombre a validar
+     * @throws NombreInvalidoException si el nombre excede la longitud máxima
+     *                                  o contiene caracteres no permitidos
+     */
 	public static void validarNombre(String nombre) throws NombreInvalidoException {
 
         // Limitar la longitud máxima (ej: 50 caracteres).

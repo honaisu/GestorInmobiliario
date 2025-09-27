@@ -10,18 +10,39 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Clase encargada de poder exportar una conexión SQL a un formato específico (en este caso, .csv)
+ * Clase utilitaria para exportar los datos de tablas de una base de datos
+ * a archivos de texto (por ejemplo, CSV).
+ * <p>
+ * Esta clase no se instancia; todos sus métodos son estáticos.
+ * </p>
+ * 
+ * <p>Ejemplo de uso:</p>
+ * <pre>
+ * Connection conn = DriverManager.getConnection(url, user, pass);
+ * SQLExporter.exportarComoCsv(conn, "Departamentos", "departamentos.csv");
+ * </pre>
+ * 
+ * @author 🄯 Los Bien Corporation
  */
 public class SQLExporter {
-	// No se inicializa, sólo se encarga de exportar :)
-	private SQLExporter() { }
+	/** Constructor privado para evitar instanciación. */
+	private SQLExporter() { 
+		
+	}
 	
-    /**
-     * Exporta los datos de una tabla específica a un archivo de texto (EJ: ".csv").
-     *
-     * @param connection La conexión a la base de datos.
-     * @param tableName  El nombre de la tabla que se desea exportar.
-     * @param filePath   La ruta del archivo ("exportacion.txt").
+	/**
+     * Exporta los datos de una tabla específica a un archivo CSV.
+     * <p>
+     * El archivo generado tendrá la primera fila con los nombres de las columnas,
+     * y las filas siguientes con los valores de cada registro. Los valores nulos
+     * se representan como "NULL".
+     * </p>
+     * 
+     * @param connection La conexión activa a la base de datos.
+     * @param tableName  Nombre de la tabla que se desea exportar.
+     * @param filePath   Ruta completa del archivo de salida (por ejemplo, "exportacion.csv").
+     * @throws SQLException si ocurre un error al consultar la base de datos.
+     * @throws IOException  si ocurre un error al escribir el archivo de salida.
      */
     public static void exportarComoCsv(Connection connection, String tableName, String filePath) throws SQLException, IOException {
         // Usamos una consulta simple para obtener todos los datos de la tabla. :)
