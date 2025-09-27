@@ -2,6 +2,7 @@ package modelo.ubicacion;
 
 import modelo.datos.EntidadBase;
 import modelo.datos.GestorPrecios;
+import modelo.entidades.Comprador;
 
 public class Departamento extends EntidadBase {
 	private final String codigo;
@@ -12,6 +13,8 @@ public class Departamento extends EntidadBase {
 	private int banos;
 	private GestorPrecios precios;
 	private Edificio edificioPadre = null;
+	private Comprador comprador = new Comprador();
+	private String rutReserva = "";
 	
 	/**
 	 * Constructor usado para generar nuevos departamentos "vacíos".
@@ -51,6 +54,7 @@ public class Departamento extends EntidadBase {
 		this.estado = estado;
 		this.precios = new GestorPrecios(precioBase, precioActual);
 	}
+
 	
 	public String getCodigo() {
 		return codigo;
@@ -63,6 +67,10 @@ public class Departamento extends EntidadBase {
 		this.metrosCuadrados = m;
 	}
 	
+	public void setEstado(EstadoDepartamento estado) {
+		this.estado = estado;
+	}
+
 	public EstadoDepartamento getEstado() {
 		return estado;
 	}
@@ -100,5 +108,21 @@ public class Departamento extends EntidadBase {
 	
 	public void setEdificioPadre(Edificio e) {
 		this.edificioPadre = e;
+	}
+
+	public String getRutReserva() {
+		return rutReserva;
+	}
+
+	public void setRutReserva(String rutReserva) {
+		this.rutReserva = rutReserva;
+	}
+
+	public Comprador getComprador() {
+		return comprador;
+	}
+
+	public void setComprador(Comprador comprador) {
+		this.comprador = comprador;
 	}
 }

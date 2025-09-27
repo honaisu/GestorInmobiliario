@@ -6,10 +6,13 @@ package modelo.entidades;
  * A su vez, posee todos los atributos de una Entidad (Datos Personales y Bancarios).
  */
 public abstract class Usuario {
-	private final String RUT;
-	private final String NOMBRE; // Primer Nombre(?) o Nombre y Apellido
+	private String RUT;
+	private String NOMBRE; // Primer Nombre(?) o Nombre y Apellido
 	private String email = "";
 	private String telefono = "000000000";
+	
+	public Usuario() {
+	}
 	
 	public Usuario(String RUT, String NOMBRE, String email) {
 		this.RUT = RUT;

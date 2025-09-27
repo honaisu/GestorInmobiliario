@@ -9,10 +9,14 @@ import modelo.ubicacion.Departamento;
  * y de ver su propia lista de compra.
  */
 public class Comprador extends Usuario {
-	private LinkedList<Departamento> departamentosComprados;
+	private LinkedList<Departamento> departamentosComprados = new LinkedList<Departamento>();
 	
-	public Comprador(String RUT, String NOMBRE, String email) {
-		super(RUT, NOMBRE, email);
+	public Comprador() {
+		
+	}
+	
+	public Comprador(String RUT, String NOMBRE, String email, String numero) {
+		super(RUT, NOMBRE, email, numero);
 		// TODO Auto-generated constructor stub
 	}
 	

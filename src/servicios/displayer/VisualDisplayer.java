@@ -43,6 +43,8 @@ import gestor.DatabaseManager;
 import gestor.FiltroBusqueda;
 import gestor.GestorInmobiliarioService;
 import gestor.ProyectoInmobiliario;
+import modelo.entidades.Comprador;
+import modelo.entidades.Usuario;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.EstadoDepartamento;
@@ -375,33 +377,181 @@ public class VisualDisplayer {
 		return panel;
 	}
 	
+	private void registrarUsuario(Edificio e, Departamento d) {
+		JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+		
+		JTextField txtNombre = new JTextField(20);
+	    JTextField txtRut = new JTextField(20);
+	    JTextField txtEmail = new JTextField(20);
+	    JTextField txtNumero = new JTextField(20);
+	    
+	    panel.add(new JLabel("Ingrese su nombre:"));
+	    panel.add(txtNombre);
+	    panel.add(new JLabel("Ingrese su rut"));
+	    panel.add(txtRut);
+	    panel.add(new JLabel("Ingrese su Email"));
+	    panel.add(txtEmail);
+	    panel.add(new JLabel("ingrese su Teléfono"));
+	    panel.add(txtNumero);
+	    
+	    int result = JOptionPane.showConfirmDialog(
+	            visualFrame,   // ventana padre que vamos a usar
+	            panel, 
+	            "Registrar Usuario", 
+	            JOptionPane.OK_CANCEL_OPTION,
+	            JOptionPane.PLAIN_MESSAGE
+	    );
+	    if (result == JOptionPane.OK_OPTION) {
+	        String nombre = txtNombre.getText().trim();
+	        String rut = txtRut.getText().trim();
+	        String email = txtEmail.getText().trim();
+	        String numero = txtNumero.getText().trim();
+
+	        if (!nombre.isEmpty() && !rut.isEmpty() && !email.isEmpty() && !numero.isEmpty()) {
+	            
+	            Comprador nuevoUsuario = new Comprador(nombre, rut, email, numero);
+	            nuevoUsuario.agregarDepartamento(d);
+	            d.setEstado(EstadoDepartamento.VENDIDO);
+	            cargarDepartamentosEnTabla(e);
+	            
+	            gestorService.getDatabaseManager().agregarNuevoProyecto(e.getProyectoPadre());
+	            
+	        } else {
+	            JOptionPane.showMessageDialog(
+	                registrarFrame, 
+	                "Debe ingresar todos los campos", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE
+	            );
+	        }
+	    }
+	    
+	}
+	
+	private void verificarusuario(Edificio e, Departamento d) {
+		JPanel panel = new JPanel(new GridLayout(0, 2, 10, 10));
+		
+		JTextField txtRut = new JTextField(20);
+		panel.add(new JLabel("Ingrese su rut"));
+	    panel.add(txtRut);
+	    
+	    int result = JOptionPane.showConfirmDialog(
+	            visualFrame,   // ventana padre que vamos a usar
+	            panel, 
+	            "Verificr Usuario", 
+	            JOptionPane.OK_CANCEL_OPTION,
+	            JOptionPane.PLAIN_MESSAGE
+	    );
+	    if (result == JOptionPane.OK_OPTION) {
+	        String rut = txtRut.getText().trim();
+	        
+	        //TODO ACTUALIZAR EL RUT DE LA RESERVA 
+	        d.setRutReserva("1234");
+	        
+	        if (!rut.isEmpty()) {
+	            
+	        	String rutReserva = d.getRutReserva();
+	        	
+	        	
+	        	if(!rutReserva.equals(rut)) {
+	        		JOptionPane.showMessageDialog(
+			                registrarFrame, 
+			                "RUT Incorrecto", 
+			                "Error", 
+			                JOptionPane.ERROR_MESSAGE
+			            );
+	        	}else {
+	        		//TODO arreglar esto
+	        		JOptionPane.showMessageDialog(
+			                registrarFrame, 
+			                "Exito", 
+			                "RUT Correcto", 
+			                JOptionPane.OK_OPTION
+			            );
+	        		
+	        		d.setEstado(EstadoDepartamento.VENDIDO);
+		            cargarDepartamentosEnTabla(e);
+		            
+		            gestorService.getDatabaseManager().agregarNuevoProyecto(e.getProyectoPadre());
+	        	}
+	            
+	            
+	            
+	        } else {
+	            JOptionPane.showMessageDialog(
+	                registrarFrame, 
+	                "Debe ingresar todos los campos", 
+	                "Error", 
+	                JOptionPane.ERROR_MESSAGE
+	            );
+	        }
+	    }
+	}
+	
+	private void comprarDepartamento() {
+		int filaSelEdi = tablaEdificio.getSelectedRow();
+		if (filaSelEdi == -1) return;
+        
+        long idEdificio = (long) defaultEdi.getValueAt(filaSelEdi, 0);
+        Edificio edificioSel = gestorService.getMapEdificios()
+				.get(idEdificio);
+        
+		int filaSelDepa = tablaDepartamento.getSelectedRow();
+		String estado = defaultDepa.getValueAt(filaSelDepa, 5).toString();
+		
+		//buscar departamento
+		LinkedList<Departamento> departamentos = edificioSel.getDepartamentos();
+		Departamento depa = null;
+        
+        for (Departamento d : departamentos) {
+        	if (d.getCodigo().equals(defaultDepa.getValueAt(filaSelDepa, 0).toString())) {
+        		depa = d;
+        	}
+        }
+		
+		
+		if (estado.equals(EstadoDepartamento.DISPONIBLE.toString())) {
+			registrarUsuario(edificioSel, depa);
+		    
+		}else {
+			verificarusuario(edificioSel, depa);
+		}
+		
+		//TODO imprimir recibo como txt
+	}
+	
+	private void reservarDepartamento() {
+		int filaSelEdi = tablaEdificio.getSelectedRow();
+		if (filaSelEdi == -1) return;
+        
+        long idEdificio = (long) defaultEdi.getValueAt(filaSelEdi, 0);
+        Edificio edificioSel = gestorService.getMapEdificios()
+				.get(idEdificio);
+        
+		int filaSelDepa = tablaDepartamento.getSelectedRow();
+		String estado = defaultDepa.getValueAt(filaSelDepa, 5).toString();
+		
+		//buscar departamento
+		LinkedList<Departamento> departamentos = edificioSel.getDepartamentos();
+		Departamento depa = null;
+        
+        for (Departamento d : departamentos) {
+        	if (d.getCodigo().equals(defaultDepa.getValueAt(filaSelDepa, 0).toString())) {
+        		depa = d;
+        	}
+        }
+        
+		registrarUsuario(edificioSel, depa);
+	}
+	
 	private void accionOpcionesVer(OpcionesVer opcion) {
 		switch (opcion) {
 		case COMPRAR:{
-			int filaSeleccionada= tablaEdificio.getSelectedRow();
-	        if (filaSeleccionada == -1) return;
-	        
-			Object valor = defaultEdi.getValueAt(filaSeleccionada, 0);
-			long idEdificio = Long.parseLong(valor.toString());
-			
-			Edificio edificioSel = gestorService.getMapEdificios()
-					.get(idEdificio);
-			
-			if (edificioSel != null) {
-				int filaSelDepa= tablaDepartamento.getSelectedRow();
-				//TODO REALIZAR COMPRAR
-				JOptionPane.showMessageDialog(
-		                registrarFrame,
-		                "Debe ingresar todos los campos",
-		                "Error",
-		                JOptionPane.ERROR_MESSAGE);
-			}
-			
-			//TODO imprimir recibo como txt para 
+			comprarDepartamento(); 
 			break;
 		}
-		case RESERVAR:{			
-			
+		case RESERVAR: {
+			reservarDepartamento();
 			break;
 		}
 		case SALIR:{
@@ -1451,8 +1601,6 @@ public class VisualDisplayer {
 	        return c;
 	    }
 	};
-	
-
 	
 	//----------------------------
 	//	Frame Modificar Proyecto
