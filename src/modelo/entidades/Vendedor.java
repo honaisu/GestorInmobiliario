@@ -1,7 +1,8 @@
 package modelo.entidades;
 
 import java.util.LinkedList;
-import gestor.ProyectoInmobiliario;
+
+import modelo.ubicacion.ProyectoInmobiliario;
 
 /**
  * Clase que definimos como un "vendedor" dentro del sistema.

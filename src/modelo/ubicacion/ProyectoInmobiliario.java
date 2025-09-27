@@ -1,4 +1,4 @@
-package gestor;
+package modelo.ubicacion;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -6,8 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.LinkedList;
 
-import modelo.datos.EntidadBase;
-import modelo.ubicacion.Edificio;
+import modelo.entidades.EntidadBase;
 
 public class ProyectoInmobiliario extends EntidadBase {
 	private String nombreProyecto;

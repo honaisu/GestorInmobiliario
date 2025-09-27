@@ -1,16 +1,16 @@
-package servicios.displayer;
+package gestion.opciones;
 
 public enum OpcionesVer {
 	COMPRAR("Comprar Seleccionado"),
 	RESERVAR("Reservar Seleccionado"),
 	SALIR("Cancelar");
 	
-	String nombre;
-	OpcionesVer(String nombre) {
+	private String nombre;
+	private OpcionesVer(String nombre) {
 		this.nombre = nombre;
 	}
 	
-	String getNombre() {
+	public String getNombre() {
 		return this.nombre;
 	}
 
