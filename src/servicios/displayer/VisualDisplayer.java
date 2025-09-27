@@ -7,6 +7,9 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.awt.FlowLayout; //pa botones?
@@ -17,9 +20,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.time.LocalDate;
-
-
+import java.sql.Date;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -62,6 +66,7 @@ import gestion.opciones.OpcionesRegistrar;
 import gestion.opciones.OpcionesVer;
 import gestion.FiltroBusqueda;
 import gestion.GestorInmobiliarioService;
+import gestion.TextFileExporter;
 import modelo.ubicacion.ProyectoInmobiliario;
 import modelo.ubicacion.Departamento;
 import modelo.ubicacion.Edificio;
@@ -648,7 +653,17 @@ public class VisualDisplayer {
 			verificarUsuario(edificioSel, depa);
 		}
 		
+		estado = defaultDepa.getValueAt(filaSelDepa, 5).toString();
+		
 		//TODO imprimir recibo como txt
+		if (estado.equals(EstadoDepartamento.VENDIDO.toString())) {
+			
+			try {
+				TextFileExporter.exportarReciboCompra(depa.getComprador(), depa);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}			
+		}
 	}
 	
 	private void reservarDepartamento() {
@@ -806,7 +821,7 @@ public class VisualDisplayer {
 		});
 		
 		//Tabla Departamento
-		String[] DepaCols = {"Código", "Piso", "metros^2", "Habitaciones", "Baños", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "metros²", "Habitaciones", "Baños", "Estado", "Precio"};
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0) {
 			@Override
 		    public boolean isCellEditable(int row, int column) {
@@ -1143,7 +1158,7 @@ public class VisualDisplayer {
 	    }
 
 	    if (edificioSel != null) {
-	        ///"Código", "Piso", "metros^2","Habitacion", "Baños", "Estado", "Precio"
+	        ///"Código", "Piso", "metros²","Habitacion", "Baños", "Estado", "Precio"
 	        JTextField txtCodigo = new JTextField(20);
 	        JTextField txtEstado = new JTextField("Disponible");//inicializamos el depa en disponbible
 
@@ -1431,7 +1446,7 @@ public class VisualDisplayer {
 		
 
 		/// Tabla Departamento /// //el id es momentaneo, e spara ver si el depa se agregaba a su respectivo edificio
-		String[] DepaCols = {"Código", "Piso", "metros^2","Habitacion", "Baños", "Estado", "Precio"};
+		String[] DepaCols = {"Código", "Piso", "metros²","Habitacion", "Baños", "Estado", "Precio"};
 
 		this.defaultDepa = new DefaultTableModel(DepaCols, 0);
 		this.tablaDepartamento = new JTable(defaultDepa);
@@ -1696,7 +1711,7 @@ public class VisualDisplayer {
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(0).setPreferredWidth(120);  // NOMBRE PROYECTO
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(1).setPreferredWidth(50);  // CODIGO
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(2).setPreferredWidth(30);  // PISO
-		tablaDepartamentosFiltrados.getColumnModel().getColumn(3).setPreferredWidth(50); // METROS^2
+		tablaDepartamentosFiltrados.getColumnModel().getColumn(3).setPreferredWidth(50); // METROS²
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(4).setPreferredWidth(60);  // HABITACIONES
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(5).setPreferredWidth(30);  // BAÑOS
 		tablaDepartamentosFiltrados.getColumnModel().getColumn(6).setPreferredWidth(70); // ESTADO
@@ -1734,7 +1749,7 @@ public class VisualDisplayer {
 		tablaDepartamento.getTableHeader().setReorderingAllowed(false);
 		tablaDepartamento.getColumnModel().getColumn(0).setPreferredWidth(50); //CODIGO
 		tablaDepartamento.getColumnModel().getColumn(1).setPreferredWidth(30); //PISO
-		tablaDepartamento.getColumnModel().getColumn(2).setPreferredWidth(50); //METROS^2
+		tablaDepartamento.getColumnModel().getColumn(2).setPreferredWidth(50); //METROS²
 		tablaDepartamento.getColumnModel().getColumn(3).setPreferredWidth(70); //HABITACIONES
 		tablaDepartamento.getColumnModel().getColumn(4).setPreferredWidth(30); //BAÑOS
 		tablaDepartamento.getColumnModel().getColumn(5).setPreferredWidth(70); //ESTADO
@@ -1912,7 +1927,6 @@ public class VisualDisplayer {
 
 	    return panel;
 	}
-	
 	
 	private void modificarEdificio() {
 		int filaSel = tablaEdificio.getSelectedRow();

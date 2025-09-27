@@ -6,7 +6,19 @@ import modelo.entidades.Comprador;
 import gestion.GestorPrecios;
 import modelo.entidades.EntidadBase;
 
-
+/**
+ * Representa un departamento dentro de un edificio.
+ * <p>
+ * Un {@code Departamento} contiene información sobre su ubicación, 
+ * dimensiones, cantidad de habitaciones y baños, estado actual, 
+ * precios asociados y datos de su comprador (en caso de estar reservado o vendido).
+ * </p>
+ * 
+ * Está asociado a un {@link Edificio} y utiliza un {@link GestorPrecios} 
+ * para manejar el precio base y el precio actual del inmueble.
+ * 
+ * @author 🄯 Los Bien Corporation
+ */
 public class Departamento extends EntidadBase {
 	private final String codigo;
 	private int numeroPiso; //antes tenia final
