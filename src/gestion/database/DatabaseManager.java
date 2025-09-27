@@ -197,8 +197,7 @@ public class DatabaseManager {
 				long edificioId = resultados.getLong("edificio_id");
 				
 				String rut = resultados.getString("rut_usuario_asociado");
-				if (rut == null) rut = "";
-				else rutsExistentes.add(rut);
+				if (rut != null) rutsExistentes.add(rut);
 				
 				// Lo siento pero tiene muchos datos :c
 				Departamento departamento = new Departamento(
@@ -485,14 +484,15 @@ public class DatabaseManager {
 			connection.commit();
 		} catch (SQLException e) {
 			JOptionPane.showMessageDialog(null, "Error al actualizar: " + e.getMessage());
+		} finally {			
+			// Hace un último try para volver a poner el AutoCommit (Updatear al insertar directamente) de la conexión.
+			try {				
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				JOptionPane.showMessageDialog(null, "No se pudo settear el auto-commit en la DB.");;
+			}
 		}
 		
-		// Hace un último try para volver a poner el AutoCommit (Updatear al insertar directamente) de la conexión.
-		try {				
-			connection.setAutoCommit(true);
-		} catch (SQLException e) {
-			JOptionPane.showMessageDialog(null, "No se pudo settear el auto-commit en la DB.");;
-		}
 	}
 	
 	private void procesarModificaciones() throws SQLException {
@@ -648,26 +648,30 @@ public class DatabaseManager {
 	//Ni idea si funcione pero mucho ojo con esto, #miedo
 	public void actualizarProyecto(ProyectoInmobiliario proyecto) throws SQLException {
 	    String query = "UPDATE Proyectos SET nombre_proyecto = ?, vendedor_asociado = ?, fecha_oferta = ? WHERE id = ?";
-	    PreparedStatement stmt = connection.prepareStatement(query);
-        stmt.setString(1, proyecto.getNombreProyecto());
-        // Fecha: convertir a String (funciona tanto si es String como LocalDate)
-        stmt.setString(2, proyecto.getVendedor());
-        stmt.setString(3, proyecto.getFechaOferta());
-        stmt.setLong(4, proyecto.getId());
-        stmt.executeUpdate();
+	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	        stmt.setString(1, proyecto.getNombreProyecto());
+	        // Fecha: convertir a String (funciona tanto si es String como LocalDate)
+	        stmt.setString(2, proyecto.getVendedor());
+	        stmt.setString(3, proyecto.getFechaOferta());
+	        stmt.setLong(4, proyecto.getId());
+	        stmt.executeUpdate();
+        } catch (SQLException e) {
+        	throw new SQLException("No se pudieron actualizar los datos del proyecto.");
+        }
 	}
 	
 	public void actualizarEdificio(Edificio edificio) throws SQLException {
 	    String query = "UPDATE Edificios SET nombre_asociado = ?, direccion = ?, tiene_piscina = ?, tiene_estacionamiento = ? WHERE id = ?";
-	    PreparedStatement stmt = connection.prepareStatement(query);
-        stmt.setString(1, edificio.getNombre());
-        stmt.setString(2, edificio.getInformacion().getDireccion());
-        stmt.setBoolean(3, edificio.getInformacion().isTienePiscina());
-        stmt.setBoolean(4, edificio.getInformacion().isTieneEstacionamiento());
-        stmt.setLong(5, edificio.getId());
-        stmt.executeUpdate();
-
-        cacheEdificios.put(edificio.getId(), edificio);
+	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	        stmt.setString	(1, edificio.getNombre());
+	        stmt.setString	(2, edificio.getInformacion().getDireccion());
+	        stmt.setBoolean	(3, edificio.getInformacion().isTienePiscina());
+	        stmt.setBoolean	(4, edificio.getInformacion().isTieneEstacionamiento());
+	        stmt.setLong	(5, edificio.getId());
+	        stmt.executeUpdate();
+        } catch (SQLException e) {
+        	throw new SQLException("No se pudieron actualizar los datos del edificio.");
+        }
 	}
 	
 	public void actualizarDepartamento(Departamento depto) throws SQLException {
@@ -681,12 +685,11 @@ public class DatabaseManager {
 	        stmt.setString	(6, depto.getEstado().name());
 	        stmt.setDouble	(7, depto.getGestorPrecios().getPrecioBase());
 	        stmt.setDouble	(8, depto.getGestorPrecios().getPrecioActual());
-	        stmt.setLong	(9, depto.getId());
-	        stmt.setString	(10, depto.getRutReserva());
-	        
+	        stmt.setString	(9, depto.getRutReserva());
+	        stmt.setLong	(10, depto.getId());
 	        stmt.executeUpdate();
 	    } catch (SQLException e) {
-	    	throw new SQLException("No se pudo");
+	    	throw new SQLException("No se pudieron actualizar los datos del departamento.");
 	    }
 	}
 	
@@ -706,7 +709,6 @@ public class DatabaseManager {
 	        stmt.setString	(10, depto.getRutReserva());
 	        
 	        stmt.executeUpdate();
-	        
 	        try (ResultSet keys = stmt.getGeneratedKeys()) {
 	            if (keys.next()) depto.setId(keys.getLong(1));
 	        }

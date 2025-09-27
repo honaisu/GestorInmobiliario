@@ -9,8 +9,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.swing.JOptionPane;
-
 /**
  * Clase encargada de poder exportar una conexión SQL a un formato específico (en este caso, .csv)
  */
