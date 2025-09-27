@@ -32,6 +32,8 @@ public class DatabaseManager {
     private final Map<Long, ProyectoInmobiliario> cacheProyectos = new HashMap<>();
     private final Map<Long, Edificio> cacheEdificios = new HashMap<>();
     private final List<Long> proyectosAEliminar = new ArrayList<>();
+    private final List<Long> edificiosAEliminar = new ArrayList<>();
+    private final List<Long> departamentosAEliminar = new ArrayList<>();
     private final List<Long> proyectosAModificar = new ArrayList<>();
     
     private Connection connection;
@@ -350,12 +352,23 @@ public class DatabaseManager {
 	}
 	
 	
-	public ProyectoInmobiliario eliminarProyecto(Long idProyecto) {
-		if (idProyecto > 0) {
-			proyectosAEliminar.add(idProyecto);
-		}
-		
-		return cacheProyectos.remove(idProyecto);
+	public void eliminarProyecto(Long idProyecto) {
+	    if (idProyecto == null || idProyecto <= 0) return;
+
+	    ProyectoInmobiliario proyecto = cacheProyectos.get(idProyecto);
+	    if (proyecto != null) {
+	        for (Edificio edificio : proyecto.getEdificios()) {
+	            if (edificio.getId() != null) {
+	                cacheEdificios.remove(edificio.getId());
+	            }
+	        }
+	    }
+	    
+	    cacheProyectos.remove(idProyecto);
+	    
+	    if (!proyectosAEliminar.contains(idProyecto)) {
+	        proyectosAEliminar.add(idProyecto);
+	    }
 	}
 	
 	private void procesarEliminaciones() throws SQLException {
@@ -363,11 +376,11 @@ public class DatabaseManager {
 
 	    String deleteQuery = "DELETE FROM Proyectos WHERE id = ?";
 	    try (PreparedStatement statement = connection.prepareStatement(deleteQuery)) {
-	        for (Long idEliminar : proyectosAEliminar) {
-	            statement.setLong(1, idEliminar);
+	        for (Long idProyecto : proyectosAEliminar) {
+	            statement.setLong(1, idProyecto);
 	            statement.addBatch();
 	        }
-	        statement.executeBatch(); // Ejecuta todas las eliminaciones de una
+	        statement.executeBatch(); 
 	    }
 	    proyectosAEliminar.clear();
 	}
@@ -653,5 +666,12 @@ public class DatabaseManager {
 	    }
 	}
 
+	/**
+     * Devuelve la instancia de la conexión actual a la base de datos.
+     * @return El objeto Connection.
+     */
+    public Connection getConnection() {
+        return this.connection;
+    }
 }
 

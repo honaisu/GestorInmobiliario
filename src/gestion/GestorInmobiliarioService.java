@@ -1,8 +1,6 @@
 package gestion;
 
-
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import gestion.database.DatabaseManager;
@@ -30,14 +28,5 @@ public class GestorInmobiliarioService {
 	
 	public Map<Long, Edificio> getMapEdificios() {
 		return databaseManager.getMapEdificios();
-	}
-	
-	/*TODO terminar esta implementación
-	public Edificio getEdificioPorId(long idEdificio) {
-		Map<Long, Edificio> mapEdificios = databaseManager.getMapEdificios();
-	}*/
-	
-	public ProyectoInmobiliario getProyectoPorId(Long idProyecto) {
-		return null;
 	}
 }

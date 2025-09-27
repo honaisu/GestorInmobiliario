@@ -832,32 +832,16 @@ public class VisualDisplayer {
 	}
 	
 	private void removerEdificio() {
-		/*int filaSeleccionada = tablaEdificio.getSelectedRow();
-	    if (filaSeleccionada != -1) {
-	        // 1) Obtener el ID del edificio desde la tabla
-	        Object valor = defaultEdi.getValueAt(filaSeleccionada, 0);
-	        long idEdificio = Long.parseLong(valor.toString());
-
-	        // 2) Buscar el edificio en la lista//mishh esta forma decirle a los papus
-	        edificiosPorProyecto.removeIf(e -> e.getId() == idEdificio);
-
-	        // 3) Eliminar la fila de la tabla
-	        defaultEdi.removeRow(filaSeleccionada);
-	    }*/
 		int filaSeleccionada = tablaEdificio.getSelectedRow();
 	    if (filaSeleccionada != -1) {
 	        Object valor = defaultEdi.getValueAt(filaSeleccionada, 0);
 	        long idEdificio = Long.parseLong(valor.toString());
 
-	        // 🔹 Si ya existe en DB, marcar para eliminar
 	        if (idEdificio > 0) {
 	            edificiosAEliminar.add(idEdificio);
 	        }
 
-	        // 🔹 Eliminar de la lista temporal (edición/registro)
 	        edificiosPorProyecto.removeIf(e -> e.getId() == idEdificio);
-
-	        // 🔹 Eliminar fila de la tabla
 	        defaultEdi.removeRow(filaSeleccionada);
 	    }
 	}
@@ -1169,7 +1153,6 @@ public class VisualDisplayer {
 	            }
 	        }
 
-	        // 🔹 Eliminar fila de la tabla
 	        defaultDepa.removeRow(filaSeleccionada);
 	    }
 	}
