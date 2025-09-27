@@ -1,16 +1,17 @@
 package gestion;
 
-
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import gestion.database.DatabaseManager;
+import modelo.entidades.Comprador;
 import modelo.ubicacion.Edificio;
 import modelo.ubicacion.ProyectoInmobiliario;
 
 public class GestorInmobiliarioService {
     private final DatabaseManager databaseManager;
+    private final Map<String, Comprador> compradores = new HashMap<>();
 	
 	public GestorInmobiliarioService() {
 		this.databaseManager = DatabaseManager.getDatabase();
@@ -32,12 +33,12 @@ public class GestorInmobiliarioService {
 		return databaseManager.getMapEdificios();
 	}
 	
-	/*TODO terminar esta implementación
-	public Edificio getEdificioPorId(long idEdificio) {
-		Map<Long, Edificio> mapEdificios = databaseManager.getMapEdificios();
-	}*/
-	
-	public ProyectoInmobiliario getProyectoPorId(Long idProyecto) {
+	public Comprador getCompradorPorRut(String rutComprador) {
+		if (databaseManager.verificarRut(rutComprador)) return compradores.get(rutComprador);
 		return null;
+	}
+	
+	public void insertComprador(Comprador nuevoComprador) {
+		compradores.put(nuevoComprador.getRut(), nuevoComprador);
 	}
 }

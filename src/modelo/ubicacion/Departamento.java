@@ -16,6 +16,7 @@ public class Departamento extends EntidadBase {
 	private int banos;
 	private GestorPrecios precios;
 	private Edificio edificioPadre = null;
+	
 	private Comprador comprador = new Comprador();
 	private String rutReserva = "";
 	

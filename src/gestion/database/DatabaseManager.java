@@ -4,8 +4,10 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
@@ -32,7 +34,10 @@ public class DatabaseManager {
     private final Map<Long, ProyectoInmobiliario> cacheProyectos = new HashMap<>();
     private final Map<Long, Edificio> cacheEdificios = new HashMap<>();
     private final List<Long> proyectosAEliminar = new ArrayList<>();
+    private final List<Long> edificiosAEliminar = new ArrayList<>();
+    private final List<Long> departamentosAEliminar = new ArrayList<>();
     private final List<Long> proyectosAModificar = new ArrayList<>();
+    private final Set<String> rutsExistentes = new HashSet<>();
     
     private Connection connection;
 
@@ -102,6 +107,10 @@ public class DatabaseManager {
 		rellenarDatosProyecto();
 		rellenarDatosEdificios();
 		rellenarDatosDepartamentos();
+	}
+	
+	public void rellenarRuts() throws SQLException {
+		
 	}
 	
 	/**
@@ -187,6 +196,9 @@ public class DatabaseManager {
 				double precioActual = resultados.getDouble("precio_actual");
 				// para su papá
 				long edificioId = resultados.getLong("edificio_id");
+				
+				String rut = resultados.getString("rut_usuario_asociado");
+				if (rut != null) rutsExistentes.add(rut);
 				
 				// Lo siento pero tiene muchos datos :c
 				Departamento departamento = new Departamento(
@@ -350,26 +362,61 @@ public class DatabaseManager {
 	}
 	
 	
-	public ProyectoInmobiliario eliminarProyecto(Long idProyecto) {
-		if (idProyecto > 0) {
-			proyectosAEliminar.add(idProyecto);
-		}
-		
-		return cacheProyectos.remove(idProyecto);
+	public void eliminarProyecto(Long idProyecto) {
+	    if (idProyecto == null || idProyecto <= 0) return;
+
+	    ProyectoInmobiliario proyecto = cacheProyectos.get(idProyecto);
+	    if (proyecto != null) {
+	        for (Edificio edificio : proyecto.getEdificios()) {
+	            if (edificio.getId() != null) {
+	                cacheEdificios.remove(edificio.getId());
+	            }
+	        }
+	    }
+	    
+	    cacheProyectos.remove(idProyecto);
+	    
+	    if (!proyectosAEliminar.contains(idProyecto)) {
+	        proyectosAEliminar.add(idProyecto);
+	    }
 	}
 	
 	private void procesarEliminaciones() throws SQLException {
-	    if (proyectosAEliminar.isEmpty()) return;
-
-	    String deleteQuery = "DELETE FROM Proyectos WHERE id = ?";
-	    try (PreparedStatement statement = connection.prepareStatement(deleteQuery)) {
-	        for (Long idEliminar : proyectosAEliminar) {
-	            statement.setLong(1, idEliminar);
-	            statement.addBatch();
+	    if (!departamentosAEliminar.isEmpty()) {
+	        String query = "DELETE FROM Departamentos WHERE id = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            for (Long id : departamentosAEliminar) {
+	                stmt.setLong(1, id);
+	                stmt.addBatch();
+	            }
+	            stmt.executeBatch();
+	            departamentosAEliminar.clear();
 	        }
-	        statement.executeBatch(); // Ejecuta todas las eliminaciones de una
 	    }
-	    proyectosAEliminar.clear();
+
+	    if (!edificiosAEliminar.isEmpty()) {
+	        String query = "DELETE FROM Edificios WHERE id = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            for (Long id : edificiosAEliminar) {
+	                stmt.setLong(1, id);
+	                stmt.addBatch();
+	            }
+	            stmt.executeBatch();
+	            edificiosAEliminar.clear();
+	        }
+	    }
+
+	    if (!proyectosAEliminar.isEmpty()) {
+	        String query = "DELETE FROM Proyectos WHERE id = ?";
+	        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+	            for (Long id : proyectosAEliminar) {
+	                stmt.setLong(1, id);
+	                stmt.addBatch();
+	            }
+	            stmt.executeBatch();
+	            proyectosAEliminar.clear();
+	        }
+	    }
 	}
 	
 	public void modificarProyecto(Long idProyecto, ProyectoInmobiliario proyectoModificado) {
@@ -558,35 +605,36 @@ public class DatabaseManager {
 	 * @param idEdificio 	El ID del edificio ya insertado en la DB.
 	 * @throws SQLException
 	 */
-	private void insertarDepartamentos(Edificio edificio, long idEdificio) throws SQLException {
-	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	    
-	    for (Departamento depto : edificio.getDepartamentos()) {
-	        // Asignamos el edificio padre
-	        depto.setEdificioPadre(edificio);
+    private void insertarDepartamentos(Edificio edificio, long idEdificio) throws SQLException {
+        String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        for (Departamento depto : edificio.getDepartamentos()) {
+            // Asignamos el edificio padre
+            depto.setEdificioPadre(edificio);
 
-	        try (PreparedStatement statement = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
-	            statement.setString(1, depto.getCodigo());
-	            statement.setInt(2, depto.getNumeroPiso());
-	            statement.setDouble(3, depto.getMetrosCuadrados());
-	            statement.setInt(4, depto.getHabitaciones());
-	            statement.setInt(5, depto.getBanos());
-	            statement.setString(6, depto.getEstado().name());
-	            statement.setDouble(7, depto.getGestorPrecios().getPrecioBase());
-	            statement.setDouble(8, depto.getGestorPrecios().getPrecioActual());
-	            statement.setLong(9, idEdificio);
+            try (PreparedStatement statement = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString    (1, depto.getCodigo());
+                statement.setInt    (2, depto.getNumeroPiso());
+                statement.setDouble    (3, depto.getMetrosCuadrados());
+                statement.setInt    (4, depto.getHabitaciones());
+                statement.setInt    (5, depto.getBanos());
+                statement.setString    (6, depto.getEstado().name());
+                statement.setDouble    (7, depto.getGestorPrecios().getPrecioBase());
+                statement.setDouble    (8, depto.getGestorPrecios().getPrecioActual());
+                statement.setLong    (9, idEdificio);
+                statement.setString    (10, depto.getRutReserva());
 
-	            statement.executeUpdate();
-	            
-	            // Opcional: Si también necesitas actualizar el ID del departamento en memoria
-	            try(ResultSet generatedKeys = statement.getGeneratedKeys()){
-	                if(generatedKeys.next()){
-	                    depto.setId(generatedKeys.getLong(1));
-	                }
-	            }
-	        }
-	    }
-	}
+                statement.executeUpdate();
+                
+                // Opcional: Si también necesitas actualizar el ID del departamento en memoria
+                try(ResultSet generatedKeys = statement.getGeneratedKeys()){
+                    if(generatedKeys.next()){
+                        depto.setId(generatedKeys.getLong(1));
+                    }
+                }
+            }
+        }
+    }
 	
 	
 	
@@ -616,42 +664,75 @@ public class DatabaseManager {
 	}
 	
 	public void actualizarDepartamento(Departamento depto) throws SQLException {
-	    String query = "UPDATE Departamentos SET codigo = ?, numero_piso = ?, metros_cuadrados = ?, habitaciones = ?, banos = ?, estado = ?, precio_base = ?, precio_actual = ? WHERE id = ?";
-	    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-	        stmt.setString(1, depto.getCodigo());
-	        stmt.setInt(2, depto.getNumeroPiso());
-	        stmt.setDouble(3, depto.getMetrosCuadrados());
-	        stmt.setInt(4, depto.getHabitaciones());
-	        stmt.setInt(5, depto.getBanos());
-	        stmt.setString(6, depto.getEstado().name());
-	        stmt.setDouble(7, depto.getGestorPrecios().getPrecioBase());
-	        stmt.setDouble(8, depto.getGestorPrecios().getPrecioActual());
-	        stmt.setLong(9, depto.getId());
-	        stmt.executeUpdate();
-	    }
-	}
+        String query = "UPDATE Departamentos SET codigo = ?, numero_piso = ?, metros_cuadrados = ?, habitaciones = ?, banos = ?, estado = ?, precio_base = ?, precio_actual = ?, rut_usuario_asociado = ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, depto.getCodigo());
+            stmt.setInt(2, depto.getNumeroPiso());
+            stmt.setDouble(3, depto.getMetrosCuadrados());
+            stmt.setInt(4, depto.getHabitaciones());
+            stmt.setInt(5, depto.getBanos());
+            stmt.setString(6, depto.getEstado().name());
+            stmt.setDouble(7, depto.getGestorPrecios().getPrecioBase());
+            stmt.setDouble(8, depto.getGestorPrecios().getPrecioActual());
+            stmt.setLong(9, depto.getId());
+            stmt.setString(10, depto.getRutReserva());
+            stmt.executeUpdate();
+        }
+    }
 	
 	
 	public void insertarDepartamento(Departamento depto, long idEdificio) throws SQLException {
-	    String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	    try (PreparedStatement stmt = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
-	        stmt.setString	(1, depto.getCodigo());
-	        stmt.setInt		(2, depto.getNumeroPiso());
-	        stmt.setDouble	(3, depto.getMetrosCuadrados());
-	        stmt.setInt		(4, depto.getHabitaciones());
-	        stmt.setInt		(5, depto.getBanos());
-	        stmt.setString	(6, depto.getEstado().name());
-	        stmt.setDouble	(7, depto.getGestorPrecios().getPrecioBase());
-	        stmt.setDouble	(8, depto.getGestorPrecios().getPrecioActual());
-	        stmt.setLong	(9, idEdificio);
-	        
-	        stmt.executeUpdate();
-	        
-	        try (ResultSet keys = stmt.getGeneratedKeys()) {
-	            if (keys.next()) depto.setId(keys.getLong(1));
-	        }
-	    }
-	}
+        String departamentoQuery = "INSERT INTO Departamentos(codigo, numero_piso, metros_cuadrados, habitaciones, banos, estado, precio_base, precio_actual, edificio_id, rut_usuario_asociado) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(departamentoQuery, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString    (1, depto.getCodigo());
+            stmt.setInt        (2, depto.getNumeroPiso());
+            stmt.setDouble    (3, depto.getMetrosCuadrados());
+            stmt.setInt        (4, depto.getHabitaciones());
+            stmt.setInt        (5, depto.getBanos());
+            stmt.setString    (6, depto.getEstado().name());
+            stmt.setDouble    (7, depto.getGestorPrecios().getPrecioBase());
+            stmt.setDouble    (8, depto.getGestorPrecios().getPrecioActual());
+            stmt.setLong    (9, idEdificio);
+            stmt.setString    (10, depto.getRutReserva());
+            stmt.executeUpdate();
+            
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) depto.setId(keys.getLong(1));
+            }
+        }
+    }
 
+	/**
+     * Devuelve la instancia de la conexión actual a la base de datos.
+     * @return El objeto Connection.
+     */
+    public Connection getConnection() {
+        return this.connection;
+    }
+    
+    /**
+     * Marca un edificio para ser eliminado de la base de datos al guardar.
+     * @param edificioId El ID del edificio a eliminar.
+     */
+    public void marcarEdificioParaEliminar(Long edificioId) {
+        if (edificioId > 0 && !edificiosAEliminar.contains(edificioId)) {
+            edificiosAEliminar.add(edificioId);
+        }
+    }
+
+    /**
+     * Marca un departamento para ser eliminado de la base de datos al guardar.
+     * @param departamentoId El ID del departamento a eliminar.
+     */
+    public void marcarDepartamentoParaEliminar(Long departamentoId) {
+        if (departamentoId > 0 && !departamentosAEliminar.contains(departamentoId)) {
+            departamentosAEliminar.add(departamentoId);
+        }
+    }
+
+	public boolean verificarRut(String rut) {
+		if (rutsExistentes.contains(rut)) return true;
+		return false;
+	}
 }
 
