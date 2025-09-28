@@ -1,43 +1,85 @@
 # Proyecto SIA: Gestor Inmobiliario
 
-Sistema de software para la gestión de ventas en el sector inmobiliario, desarrollado como un proyecto universitario. La aplicación centraliza la administración de múltiples proyectos de departamentos e incorpora una lógica de negocio con precios dinámicos que se adaptan a las condiciones del mercado en tiempo real.
+Sistema de escritorio para la gestión de ventas en el sector inmobiliario, desarrollado como un proyecto universitario para el curso de Sistemas de Información y Algoritmos. La aplicación centraliza la administración de proyectos de departamentos, implementando una arquitectura robusta de tres capas y persistencia de datos a través de SQLite.
 
 ---
 
-## Objetivo del Proyecto
+## Funcionalidades Clave
 
-El objetivo principal es desarrollar un sistema para el manejo integral del ciclo de venta de departamentos, implementando un modelo de precios dinámico que se ajuste automáticamente a la oferta de propiedades y a la demanda de los clientes.
-
----
-
-## Funcionalidades Principales
-- **Gestión de Proyectos**: Permite a los vendedores administrar los proyectos y las unidades que tienen a la venta.
-- **Búsqueda y Reserva**: Ofrece a los compradores una interfaz para buscar y reservar departamentos que cumplan con sus criterios.
-- **Algoritmo de Precios Dinámico**: Incluye un componente central que ajusta el precio de las propiedades basándose en la oferta disponible y la demanda de los usuarios activos.
-  
----
-
-## Diseño Técnico 
-
-El diseño del sistema se fundamenta en el paradigma de Programación Orientada a Objetos para modelar las entidades del mundo real de forma coherente y escalable.
-- **Arquitectura de Capa de Servicio**: La lógica de negocio está orquestada por la clase `GestorInmobiliarioService`, que actúa como una fachada para centralizar las operaciones y gestionar las colecciones de datos principales.
-- **Uso de Estructuras de Datos**:
-    - Se utiliza la estructura de datos `Map` del Java Collections Framework para almacenar proyectos, usuarios y reservas.
-    - Las clases `ProyectoInmobiliario`, `Edificio` y `Departamento` se modela mediante colecciones anidadas para una representación natural de los datos.
-- **Encapsulamiento**: Todos los atributos de las clases son `private` para proteger la integridad del estado de los objetos. El acceso se controla a través de métodos públicos `get` y `set`.  
-- **Interfaz de Consola**: Las funcionalidades del sistema son operables a través de una interfaz de texto estándar.
+- **Gestión Completa (CRUD):** Creación, visualización, modificación y eliminación de proyectos inmobiliarios.
+- **Navegación Jerárquica:** Interfaz intuitiva para navegar desde los proyectos hasta sus edificios y departamentos asociados.
+- **Búsqueda Avanzada por Criterios:** Potente ventana de filtrado que permite a los usuarios buscar departamentos por rango de precios, tamaño, ubicación y otras características.
+- **Persistencia de Datos con SQLite:** Toda la información se almacena en una base de datos local SQLite, gestionada a través de una capa de persistencia con caché en memoria para un rendimiento óptimo.
+- **Generación de Recibos en TXT:** Creación automática de un recibo en formato `.txt` al completar una compra.
+- **Validación de Datos:** Implementación de validadores y excepciones personalizadas para asegurar la integridad de los datos ingresados por el usuario (RUT, email, etc.).
 
 ---
 
-## Tecnologías
-- **Lenguaje**: Java (JDK 11).
-- **Control de Versiones**: Git y GitHub
+## Arquitectura y Diseño Técnico
+
+El sistema se fundamenta en el paradigma de **Programación Orientada a Objetos** y sigue una **arquitectura de tres capas** para separar responsabilidades y facilitar la escalabilidad.
+
+1. **Capa de Vista (GUI):** Desarrollada íntegramente con **Java Swing**. La clase `VisualDisplayer` se encarga de construir y gestionar todas las ventanas e interacciones con el usuario.
+2. **Capa de Servicio (Lógica de Negocio):** Orquestada por la clase `GestorInmobiliarioService`, que aplica el patrón de diseño **Facade** para servir como único punto de entrada a la lógica del negocio.
+3. **Capa de Persistencia:** Gestionada por la clase `DatabaseManager` (Singleton), que maneja toda la comunicación con la base de datos **SQLite**. Implementa un sistema de caché en memoria (`Map`) para minimizar las consultas a la base de datos y mejorar la fluidez de la aplicación.
+
+### Principios de Diseño Aplicados
+
+- **Encapsulamiento:** Todos los atributos de las clases del modelo son `private`, con acceso controlado mediante métodos `get` y `set`.
+- **Sobrecarga de Métodos:** Se utiliza principalmente en los **constructores** de las clases del modelo (`Edificio`, `Departamento`, etc.) para permitir su creación en diferentes contextos.
+- **Sobrescritura de Métodos:** Se aplica en clases anónimas para personalizar el comportamiento de componentes de Swing, como `DefaultTableModel` y `DefaultTableCellRenderer`.
 
 ---
 
-## Instrucciones de Ejecución
+## Tecnologías Utilizadas
 
-1. Clonar el repositorio desde GitHub: `git clone https://github.com/honaisu/GestorInmobiliario.git`
-2. Navegar al directorio del proyecto.
-3. Compilar los archivos fuente `.java`.
-4. Ejecutar la clase principal que contiene el método `main`, ubicada en la carpeta `src/main/Main.java`.
+- **Lenguaje:** Java
+- **Interfaz Gráfica:** Java Swing
+- **Base de Datos:** SQLite (a través del driver `sqlite-jdbc`)
+- **Control de Versiones:** Git y GitHub
+
+---
+
+## Instalación y Ejecución
+
+**Pre-requisitos:**
+
+- Tener instalado el JDK (Java Development Kit).
+- Tener instalado Git.
+
+**Pasos:**
+
+1. Clona el repositorio desde GitHub:
+    
+    ```bash
+    git clone [<https://github.com/honaisu/GestorInmobiliario.git>](<https://github.com/honaisu/GestorInmobiliario.git>)
+    
+    ```
+    
+2. Navega al directorio del proyecto:
+    
+    ```bash
+    cd GestorInmobiliario
+    
+    ```
+    
+3. Asegúrate de que el driver de SQLite (`sqlite-jdbc.jar`) esté en el classpath. Si usas un IDE como Eclipse o IntelliJ, puedes añadirlo como una librería externa al proyecto.
+4. Compila y ejecuta la aplicación. Desde la terminal, puedes hacerlo de la siguiente manera:
+    
+    ```bash
+    # Compilar (asumiendo que las fuentes están en 'src' y el .jar en 'lib')
+    javac -cp "lib/sqlite-jdbc.jar:." -d bin src/**/*.java
+    
+    # Ejecutar
+    java -cp "lib/sqlite-jdbc.jar:bin" main.Main
+    
+    ```
+    
+
+---
+
+## Autores
+
+- Benjamín Contreras
+- Anselmo Díaz
+- Ignacio Ruiz
