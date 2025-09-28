@@ -1,45 +1,63 @@
 package gestion;
 
+import modelo.ubicacion.Edificio;
+
 /**
- * Clase encargada de gestionar todo lo referente a lo "financiero".
+ * Clase que gestiona el precio base y el precio actual de un departamento
+ * dentro de un proyecto inmobiliario.
  * <p>
- * Esto involucra los precios base y actuales de las entidades que
- * posean esta clase.
+ * El {@code GestorPrecios} permite inicializar un precio base, 
+ * actualizar el precio actual y recalcularlo dinámicamente en función 
+ * de la demanda (relación entre departamentos vendidos y totales).
+ * </p>
+ * 
+ * @author 🄯 Los Bien Corporation
  */
 public class GestorPrecios {
+	
+	/** Precio inicial asignado al departamento. */
 	private double precioBase;
+	
+	/** Precio actual del departamento, que puede variar según la demanda. */
 	private double precioActual;
 	
 	/**
-	 * Constructor usado para construir los NUEVOS precios
-	 * @param precioBase
-	 */
+     * Constructor que asigna un precio base y lo establece 
+     * también como precio actual.
+     * 
+     * @param precioBase precio inicial del departamento
+     */
 	public GestorPrecios(double precioBase) {
 		this.precioBase = precioBase;
 		this.precioActual = precioBase;
 	}
 	
 	/**
-	 * Constructor para poder usarlo en la DB, con un precioActual definido (y guardado en la base de datos).
-	 * @param precioBase
-	 * @param precioActual
-	 */
+     * Constructor que permite asignar un precio base y un precio actual inicial.
+     * 
+     * @param precioBase precio base del departamento
+     * @param precioActual precio actual del departamento
+     */
 	public GestorPrecios(double precioBase, double precioActual) {
 		this.precioBase = precioBase;
 		this.precioActual = precioBase;
 	}
 	
+	/** @return el precio base del departamento */
 	public double getPrecioBase() {
 		return precioBase;
 	}
 	
+	/** @return el precio actual del departamento */
 	public double getPrecioActual() {
 		return precioActual;
 	}
 	
 	/**
-     * Actualiza el precio base y resetea el precio actual a este nuevo valor.
-     * @param nuevoPrecioBase El nuevo precio base.
+     * Establece un nuevo precio base y lo asigna también 
+     * como precio actual.
+     * 
+     * @param nuevoPrecioBase nuevo valor para el precio base
      */
     public void setPrecio(double nuevoPrecioBase) {
         this.precioBase = nuevoPrecioBase;
@@ -47,20 +65,29 @@ public class GestorPrecios {
     }
     
     /**
-     * Lógica de precios dinámica.
-     * Aumenta el precio actual basado en la ocupación del edificio.
-     * @param totalDepartamentos 	El número total de departamentos en el edificio.
-     * @param departamentosVendidos El número de departamentos ya vendidos.
+     * Actualiza el precio actual del departamento en función de la demanda.
+     * <p>
+     * El cálculo se hace según la ocupación:  
+     * {@code ocupacion = departamentosVendidos / totalDepartamentos}.
+     * </p>
+     * <p>
+     * Mientras mayor sea la ocupación, mayor será el aumento porcentual
+     * respecto al precio base. Ejemplo: si el 50% de los departamentos 
+     * están vendidos, el precio aumenta un 10%.
+     * </p>
+     * 
+     * @param totalDepartamentos número total de departamentos del edificio/proyecto
+     * @param departamentosVendidos número de departamentos ya vendidos
      */
-    public void actualizarPrecioPorDemanda(int totalDepartamentos, int departamentosVendidos) {
+    public void actualizarPrecioPorDemanda(int totalDepartamentos, int departamentosVendidos, Edificio edificio) {
         if (totalDepartamentos == 0) return;
 
         double ocupacion = (double) departamentosVendidos / totalDepartamentos;
-
+        
         // Creamos un factor de aumento: a mayor ocupación, mayor precio.
         // De ejemplo :3, si el 50% está vendido, el precio aumenta un 10%.
         double factorAumento = 1.0 + (ocupacion * 0.20);
         
-        this.precioActual = this.precioBase * factorAumento;
+        this.precioActual = Math.round(this.precioBase * factorAumento * 100.0) / 100.0;
     }
 }

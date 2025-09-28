@@ -13,17 +13,43 @@ import modelo.ubicacion.ProyectoInmobiliario;
 
 
 /**
- * Clase encargada de poder exportar los datos de un comprador asociado (y un departamento)
- * en formato .txt; usado para poder generar recibos de compra al reservar / comprar.
+ * Clase utilitaria para exportar información a archivos de texto.
+ * <p>
+ * Esta clase no se instancia; todos sus métodos son estáticos.
+ * Se utiliza principalmente para generar recibos de compra de departamentos.
+ * </p>
+ * 
+ * <p>Ejemplo de uso:</p>
+ * <pre>
+ * Comprador comprador = new Comprador("12345678-9", "Juan Pérez", "juan@mail.com", "987654321");
+ * Departamento depto = ...; // obtener departamento adquirido
+ * TextFileExporter.exportarReciboCompra(comprador, depto);
+ * </pre>
+ * 
+ * @author 🄯 Los Bien Corporation
  */
 public class TextFileExporter {
-	private TextFileExporter() { }
+	/** Constructor privado para evitar instanciación. */
+	private TextFileExporter() { 
+		
+	}
 	
 	/**
      * Exporta los datos de una compra a un archivo de texto.
      *
      * @param comprador    El usuario que realizó la compra.
      * @param departamento El departamento que fue adquirido.
+
+     * Genera un recibo de compra en formato de texto para un comprador
+     * y un departamento específico.
+     * <p>
+     * El archivo se guarda en la carpeta <code>./data/recibos/</code> y su nombre
+     * incluye el RUT del comprador y un timestamp único para evitar colisiones.
+     * </p>
+     * 
+     * @param comprador    el usuario que realizó la compra
+     * @param departamento el departamento adquirido
+     * @throws IOException si ocurre un error al escribir el archivo
      */
     public static void exportarReciboCompra(Comprador comprador, Departamento departamento) throws IOException {
         Edificio edificio = departamento.getEdificioPadre();

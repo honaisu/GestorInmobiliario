@@ -2,9 +2,35 @@ package validaciones;
 
 import excepciones.TelefonoInvalidoException;
 
+/**
+ * Clase utilitaria para validar números de teléfono.
+ * <p>
+ * Esta clase no se instancia; todos sus métodos son estáticos.
+ * Permite verificar que un número de teléfono cumpla con el formato chileno estándar (9 dígitos).
+ * </p>
+ * 
+ * <p>Ejemplo de uso:</p>
+ * <pre>
+ * try {
+ *     ValidadorTelefono.validarTelefono("912345678");
+ * } catch (TelefonoInvalidoException e) {
+ *     System.out.println("Teléfono inválido: " + e.getMessage());
+ * }
+ * </pre>
+ * 
+ * @author 🄯 Los Bien Corporation
+ */
 public class ValidadorTelefono {
 	
-	//Tomando en cuenta lo de usurario que tiene 9 datos, osea se "asume" que es del +56 en adelante
+	/**
+     * Valida que un número de teléfono tenga exactamente 9 dígitos numéricos.
+     * <p>
+     * Se asume que el número corresponde a Chile, excluyendo el prefijo internacional (+56).
+     * </p>
+     *
+     * @param numero número de teléfono a validar
+     * @throws TelefonoInvalidoException si el número es nulo o no cumple con el formato
+     */
 	public static void validarTelefono(String numero) throws TelefonoInvalidoException {
         String patron = "^\\d{9}$";
 
@@ -15,14 +41,3 @@ public class ValidadorTelefono {
     }
 
 }
-
-/*
-//Forma de usarlo igual
-	try {
-        // Llamamos al nuevo validador
-        ValidadorTelefono.validarFormato(numero);
-        System.out.println("✅ El teléfono '" + numero + "' es VÁLIDO.");
-    } catch (TelefonoInvalidoException e) { // Capturamos la nueva excepción
-        System.out.println("❌ Error en '" + numero + "': " + e.getMessage());
-    }
- */
