@@ -41,6 +41,7 @@ public class DatabaseManager {
     private final Set<String> rutsExistentes = new HashSet<>();
     private final Map<String, Usuario> cacheUsuarios = new HashMap<>(); 
     
+    private int totalDepartamentosVendidos = 0;
     private Connection connection;
 
     /**
@@ -70,6 +71,10 @@ public class DatabaseManager {
 	 */
 	public Map<Long, ProyectoInmobiliario> getMapProyectos() {
 		return cacheProyectos;
+	}
+	
+	public int getTotalProyectos() {
+		return cacheProyectos.size();
 	}
 	
 	/**
@@ -218,6 +223,8 @@ public class DatabaseManager {
 				int habitaciones = resultados.getInt("habitaciones");
 				int banos = resultados.getInt("banos");
 				EstadoDepartamento estado = EstadoDepartamento.valueOf(resultados.getString("estado"));
+				if (estado.equals(EstadoDepartamento.VENDIDO)) totalDepartamentosVendidos++;
+				
 				double precioBase = resultados.getDouble("precio_base");
 				double precioActual = resultados.getDouble("precio_actual");
 				// para su papá
@@ -488,7 +495,7 @@ public class DatabaseManager {
 	 * Actualiza la base de datos con los nuevos proyectos, edificios y departamentos
 	 * que se han agregado hasta el momento :)
 	 */
-	public void actualizarDatosDatabase() {
+	public void actualizarDatosDatabase() throws SQLException {
 		String proyectosQuery = "INSERT INTO Proyectos(nombre_proyecto, vendedor_asociado, fecha_oferta) VALUES(?, ?, ?)";
 		
 		try (PreparedStatement statement = connection.prepareStatement(proyectosQuery, Statement.RETURN_GENERATED_KEYS)) {
@@ -538,13 +545,13 @@ public class DatabaseManager {
 			
 			connection.commit();
 		} catch (SQLException e) {
-			JOptionPane.showMessageDialog(null, "Error al actualizar: " + e.getMessage());
+			throw new SQLException("Error al actualizar: " + e.getMessage());
 		} finally {			
 			// Hace un último try para volver a poner el AutoCommit (Updatear al insertar directamente) de la conexión.
 			try {				
 				connection.setAutoCommit(true);
 			} catch (SQLException e) {
-				JOptionPane.showMessageDialog(null, "No se pudo settear el auto-commit en la DB.");;
+				throw new SQLException("No se pudo settear el auto-commit en la DB.");
 			}
 		}
 		
@@ -802,6 +809,18 @@ public class DatabaseManager {
 
 	public Usuario buscarUsuarioPorRut(String rut) {
 		return cacheUsuarios.get(rut);
+	}
+
+	public int getTotalDepartamentos() {
+		return cacheProyectos.size();
+	}
+
+	public int getTotalDepartamentosVendidos() {
+		return totalDepartamentosVendidos;
+	}
+
+	public void aumentarContadorVendidos() {
+		totalDepartamentosVendidos++;
 	}
 }
 

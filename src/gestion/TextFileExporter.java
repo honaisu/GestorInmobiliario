@@ -20,7 +20,7 @@ public class TextFileExporter {
 	private TextFileExporter() { }
 	
 	/**
-     * Exporta los datos de una compra a un archivo de texto único.
+     * Exporta los datos de una compra a un archivo de texto.
      *
      * @param comprador    El usuario que realizó la compra.
      * @param departamento El departamento que fue adquirido.

@@ -1,4 +1,4 @@
-package servicios.displayer;
+package gestion.opciones;
 
 public enum OpcionesModificar {
     AGREGAR_E("Agregar Edificio"),
