@@ -79,7 +79,7 @@ public class GestorPrecios {
      * @param totalDepartamentos número total de departamentos del edificio/proyecto
      * @param departamentosVendidos número de departamentos ya vendidos
      */
-    public void actualizarPrecioPorDemanda(int totalDepartamentos, int departamentosVendidos, Edificio edificio) {
+    public void actualizarPrecioPorDemanda(int totalDepartamentos, int departamentosVendidos) {
         if (totalDepartamentos == 0) return;
 
         double ocupacion = (double) departamentosVendidos / totalDepartamentos;

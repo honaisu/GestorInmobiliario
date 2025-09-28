@@ -364,24 +364,29 @@ public class DatabaseManager {
 	}
 	
 	/**
-	 * Agregar proyecto
+	 * Agregar un proyecto de forma dinámica dentro del cache de nuestra DB.
 	 */
 	public void agregarNuevoProyecto(ProyectoInmobiliario proyecto) {
-		if (proyecto.getId() != null) return;
-		
-		// Elegimos un ID único para cada nuevo proyecto
-		// Negativo para evitar combinar con datos REALES.
-		long idTemporal = -System.currentTimeMillis();
-		proyecto.setId(idTemporal);
-		
-		cacheProyectos.put(proyecto.getId(), proyecto);
+	    if (proyecto.getId() != null) return;
+
+	    // Asigna un ID temporal al proyecto
+	    long idTemporal = -System.currentTimeMillis();
+	    proyecto.setId(idTemporal);
+	    
+	    // Agrega el proyecto a su caché
+	    cacheProyectos.put(proyecto.getId(), proyecto);
+	    
+	    for (Edificio edificio : proyecto.getEdificios()) {
+	        agregarNuevoEdificio(edificio); 
+	    }
 	}
 	
 	public void agregarNuevoEdificio(Edificio edificio) {
-		if (edificio.getId() != null) return;
+		if (edificio.getId() == null) {
+			long idTemporal = -System.currentTimeMillis();
+	        edificio.setId(idTemporal);
+		}
 		
-		long idTemporal = -System.currentTimeMillis();
-		edificio.setId(idTemporal);
 		cacheEdificios.put(edificio.getId(), edificio);
 	}
 	

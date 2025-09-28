@@ -21,12 +21,12 @@ import modelo.ubicacion.EstadoDepartamento;
 import modelo.ubicacion.ProyectoInmobiliario;
 
 public class ControladorPrincipal {
-	private final VisualDisplayerV2 vista;
+	private final VisualDisplayer vista;
     private final GestorInmobiliarioService gestor;
 	
 	private LinkedList<Edificio> edificiosTemporales = new LinkedList<Edificio>();
     
-    public ControladorPrincipal(GestorInmobiliarioService gestor, VisualDisplayerV2 vista) {
+    public ControladorPrincipal(GestorInmobiliarioService gestor, VisualDisplayer vista) {
         this.gestor = gestor;
         this.vista = vista;
     }
@@ -41,7 +41,7 @@ public class ControladorPrincipal {
 			    this.edificiosTemporales.clear(); 
 			    
 				vista.ocultarVentanaPrincipal();
-				vista.mostrarVentanaRegistrar();
+				vista.iniciarVentanaRegistrar();
 				break;
 			}		
 			case MODIFICAR: {
@@ -150,6 +150,26 @@ public class ControladorPrincipal {
 	    } else {
 	        vista.solicitarVerificacionUsuario(edificioSel, deptoSel);
 	    }
+	    
+	    if (deptoSel.getEstado().equals(EstadoDepartamento.VENDIDO)) {
+			//Actualizar los precios por demanda
+			int departamentosTotales = edificioSel.getDepartamentos().size();
+			int departamentosVendidos = 0;
+			
+			LinkedList<Departamento> depas = edificioSel.getDepartamentos();
+			
+			for (Departamento d: depas) {
+				if(d.getEstado().name().equals(EstadoDepartamento.VENDIDO.toString())) {
+					departamentosVendidos++;
+				}
+			}
+			
+			for (Departamento d: depas) {
+				if(!d.getEstado().name().equals(EstadoDepartamento.VENDIDO.toString())) {
+					d.getGestorPrecios().actualizarPrecioPorDemanda(departamentosTotales, departamentosVendidos);
+				}
+			}
+	    }
 	}
 
 	public void generarNuevoRegistroUsuario(Comprador nuevoUsuario, Edificio edificioSel, Departamento deptoSel, boolean comprarSeleccionado) throws SQLException {
@@ -208,7 +228,7 @@ public class ControladorPrincipal {
 	
 	public void iniciarProcesoDeRegistro() {
 	    this.edificiosTemporales.clear();
-	    vista.mostrarVentanaRegistrar();
+	    vista.iniciarVentanaRegistrar();
 	}
 	
 	public void manejarOpcionesRegistrar(OpcionesRegistrar opcion) {
@@ -253,14 +273,15 @@ public class ControladorPrincipal {
 	    
 	    ProyectoInmobiliario nuevoProyecto = new ProyectoInmobiliario(nombreProyecto, vendedor, LocalDate.now());
 	    for (Edificio e : this.edificiosTemporales) {
+	    	e.setProyectoPadre(nuevoProyecto);
 	        nuevoProyecto.addEdificio(e);
 	    }
 	    
-	    gestor.agregarProyectoADatabase(nuevoProyecto);
+	    gestor.agregarProyectoACache(nuevoProyecto);
 	    
 	    vista.mostrarMensajeExito("Proyecto '" + nombreProyecto + "' registrado con éxito.");
-	    vista.cerrarVentanaRegistrar();
 	    vista.cargarProyectosEnModeloTabla();
+	    vista.cerrarVentanaRegistrar();
 	    vista.mostrarVentanaPrincipal();
 	}
 
@@ -315,9 +336,7 @@ public class ControladorPrincipal {
 	    // Se marca para eliminar (ya que es un ID valido)
 		if (edificioId > 0) gestor.marcarEdificioParaEliminar(edificioId);
 
-        // Lo quitamos de la lista temporal en memoria para que la UI se actualice.
-		this.edificiosTemporales.removeIf(e -> e.getId() == edificioId);        
-		// Y lo quitamos de la tabla visual.
+		this.edificiosTemporales.removeIf(e -> e.getId().equals((Long)edificioId));        
         vista.actualizarTablaEdificiosRegistrar(this.edificiosTemporales);        
 	}
 
@@ -363,20 +382,18 @@ public class ControladorPrincipal {
 	}
 	
 	public void guardarCambiosModificacion(ProyectoInmobiliario proyectoOriginal) {
-	    // 1. Obtener datos actualizados de la vista
 	    String nuevoNombre = vista.getNombreProyectoRegistrar();
 	    String nuevoVendedor = vista.getVendedorRegistrar();
 
-	    // 2. Actualizar el objeto original en memoria
 	    proyectoOriginal.setNombreProyecto(nuevoNombre);
 	    proyectoOriginal.setVendedor(nuevoVendedor);
 	    proyectoOriginal.getEdificios().clear();
-	    proyectoOriginal.getEdificios().addAll(this.edificiosTemporales); // Usa la lista temporal
-
-	    // 3. Marcar el proyecto para ser actualizado en la base de datos al salir
+	    for (Edificio edificio : this.edificiosTemporales) {
+	        proyectoOriginal.addEdificio(edificio); 
+	        edificio.setProyectoPadre(proyectoOriginal); 
+	    }
 	    gestor.marcarProyectoParaModificar(proyectoOriginal.getId());
 
-	    // 4. Cerrar y actualizar la UI
 	    vista.mostrarMensajeExito("Proyecto actualizado correctamente.");
 	    vista.cerrarVentanaModificar();
 	    vista.cargarProyectosEnModeloTabla();
@@ -413,12 +430,23 @@ public class ControladorPrincipal {
 	        	this.guardarCambiosModificacion(proyecto);
 	            break;
 	        }
+	        case ELIMINAR_PROYECTO: {
+	        	vista.verOpcionEliminar(proyecto);
+        		this.eliminarProyecto(proyecto);
+	        }
 	        case CANCELAR: {
 	    	    vista.cerrarVentanaModificar();
 	    	    vista.mostrarVentanaPrincipal();
 	            break;
 	        }
 	    }
+	}
+	
+	public void eliminarProyecto(ProyectoInmobiliario proyecto) {
+    	gestor.eliminarProyecto(proyecto);
+    	vista.cargarProyectosEnModeloTabla();
+    	vista.cerrarVentanaModificar();
+    	vista.mostrarVentanaPrincipal();
 	}
 	
 	private void removerEdificioModificar() {

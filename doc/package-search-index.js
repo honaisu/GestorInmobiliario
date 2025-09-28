@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"excepciones"},{"l":"gestion"},{"l":"gestion.database"},{"l":"gestion.opciones"},{"l":"main"},{"l":"modelo.entidades"},{"l":"modelo.ubicacion"},{"l":"servicios.displayer"},{"l":"validaciones"}]

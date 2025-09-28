@@ -106,16 +106,14 @@ public class GestorInmobiliarioService {
 	}
 
 	public void marcarEdificioParaEliminar(Long edificioId) {
-		// TODO Auto-generated method stub
 		databaseManager.marcarEdificioParaEliminar(edificioId);
 	}
 
 	public void marcarDepartamentoParaEliminar(Long departamentoId) {
-		// TODO Auto-generated method stub
 		databaseManager.marcarDepartamentoParaEliminar(departamentoId);
 	}
 
-	public void agregarProyectoADatabase(ProyectoInmobiliario nuevoProyecto) {
+	public void agregarProyectoACache(ProyectoInmobiliario nuevoProyecto) {
 		databaseManager.agregarNuevoProyecto(nuevoProyecto);
 	}
 
@@ -129,6 +127,10 @@ public class GestorInmobiliarioService {
 
 	public List<Departamento> buscarDepartamentosPorFiltro(FiltroBusqueda filtro) {
 		return databaseManager.getDepartamentosPorFiltro(filtro);
+	}
+	
+	public void eliminarProyecto(ProyectoInmobiliario proyecto) {
+		databaseManager.eliminarProyecto(proyecto.getId());
 	}
 	
 	/**
